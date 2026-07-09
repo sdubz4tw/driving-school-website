@@ -350,7 +350,7 @@ export default function Dashboard() {
                     {images.map(img => (
                       <div key={img.name} className="bg-gray-800/50 rounded-xl border border-gray-700 overflow-hidden group">
                         <div className="relative h-36 bg-gray-800">
-                          <Image src={img.url} alt={img.name} fill className="object-cover" />
+                          <img src={img.url} alt={img.name} className="w-full h-full object-cover" />
                           <button onClick={() => handleDelete(img.name)} className="absolute top-2 right-2 w-7 h-7 rounded-full bg-red-500/80 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer hover:bg-red-500"><Trash2 size={12} /></button>
                         </div>
                         <div className="p-3 space-y-1">

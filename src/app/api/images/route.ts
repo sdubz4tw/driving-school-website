@@ -19,13 +19,6 @@ const isBlobConfigured = () => !!process.env.BLOB_READ_WRITE_TOKEN;
 /* GET — list uploaded images */
 export async function GET() {
   try {
-    if (isBlobConfigured()) {
-      // In production, we fetch images uploaded locally or list some defaults.
-      // Note: Vercel Blob doesn't have a direct "list" SDK method without token scope,
-      // but listing local files works or we return an empty array / mock default files.
-      // However, to keep it functional, we list local files when they exist.
-    }
-    
     if (!fs.existsSync(UPLOAD_DIR)) {
       fs.mkdirSync(UPLOAD_DIR, { recursive: true });
     }
@@ -86,22 +79,40 @@ export async function POST(request: NextRequest) {
         },
       });
     } else {
-      // Local fallback
-      if (!fs.existsSync(UPLOAD_DIR)) {
-        fs.mkdirSync(UPLOAD_DIR, { recursive: true });
-      }
-      const filePath = path.join(UPLOAD_DIR, safeName);
-      const arrayBuffer = await file.arrayBuffer();
-      fs.writeFileSync(filePath, Buffer.from(arrayBuffer));
+      // Try local file system write first
+      try {
+        if (!fs.existsSync(UPLOAD_DIR)) {
+          fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+        }
+        const filePath = path.join(UPLOAD_DIR, safeName);
+        const arrayBuffer = await file.arrayBuffer();
+        fs.writeFileSync(filePath, Buffer.from(arrayBuffer));
 
-      return NextResponse.json({
-        success: true,
-        image: {
-          name: safeName,
-          url: `/images/uploads/${safeName}`,
-          size: file.size,
-        },
-      });
+        return NextResponse.json({
+          success: true,
+          image: {
+            name: safeName,
+            url: `/images/uploads/${safeName}`,
+            size: file.size,
+          },
+        });
+      } catch (writeError) {
+        // Fallback for read-only serverless filesystems (e.g. Vercel without Blob tokens)
+        // Convert to Base64 Data URL so the user can still preview and save it inside content.json
+        const arrayBuffer = await file.arrayBuffer();
+        const base64String = Buffer.from(arrayBuffer).toString("base64");
+        const dataUrl = `data:${file.type};base64,${base64String}`;
+
+        return NextResponse.json({
+          success: true,
+          image: {
+            name: safeName,
+            url: dataUrl,
+            size: file.size,
+            isBase64Fallback: true
+          },
+        });
+      }
     }
   } catch (error) {
     return NextResponse.json({ error: "Upload failed" }, { status: 500 });
@@ -127,8 +138,6 @@ export async function DELETE(request: NextRequest) {
     if (fs.existsSync(filePath)) {
       fs.unlinkSync(filePath);
     }
-    
-    // Note: If using Vercel Blob, deleting is optional or handled via the dashboard console.
     
     return NextResponse.json({ success: true, deleted: safeName });
   } catch {
