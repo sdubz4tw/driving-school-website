@@ -1,0 +1,172 @@
+{
+  "hero": {
+    "slides": [
+      {
+        "image": "/images/uploads/slide_1_1783579078660.jpg",
+        "title": "San Francisco's Most Trusted Driving School",
+        "subtitle": "Expert 1-on-1 driving instruction in the SF Bay Area. Patient instructors, dual-control vehicles, and a proven track record of success."
+      },
+      {
+        "image": "/images/uploads/slide_2_1783579661244.jpg",
+        "title": "Master City & Highway Driving",
+        "subtitle": "Learn to navigate San Francisco's hills, traffic, and freeways with confidence. Real-world training that prepares you for anything."
+      },
+      {
+        "image": "/images/uploads/slide_3_1783579093489.jpeg",
+        "title": "Get Your License — First Try",
+        "subtitle": "Join thousands of graduates who passed their DMV road test on the very first attempt. We guarantee results."
+      }
+    ],
+    "stats": {
+      "passRate": "98%",
+      "graduates": "10k+",
+      "instructors": "15+"
+    }
+  },
+  "packages": [
+    {
+      "id": "starter",
+      "name": "Starter Permit Pack",
+      "price": "$299",
+      "lessons": "5 Lessons",
+      "duration": "45 mins each",
+      "popular": false,
+      "tagline": "Perfect for new drivers getting comfortable behind the wheel for the first time.",
+      "features": [
+        "Basic vehicle operations & controls",
+        "Steering control & lane positioning",
+        "Parking basics (parallel & perpendicular)",
+        "1-on-1 certified instructor",
+        "Free pickup & drop-off in SF"
+      ]
+    },
+    {
+      "id": "defensive",
+      "name": "Defensive Master Class",
+      "price": "$549",
+      "lessons": "10 Lessons",
+      "duration": "60 mins each",
+      "popular": true,
+      "tagline": "Our most popular pack. Master SF hills, defensive driving, and full road test prep.",
+      "features": [
+        "Everything in Starter Permit Pack",
+        "Hill driving & San Francisco streets",
+        "Highway & freeway confidence",
+        "Night driving & poor weather handling",
+        "Complete DMV road test simulation",
+        "Certificate for insurance discount"
+      ]
+    },
+    {
+      "id": "elite",
+      "name": "Elite Test Readiness",
+      "price": "$799",
+      "lessons": "15 Lessons",
+      "duration": "60 mins each",
+      "popular": false,
+      "tagline": "Complete mastery package. Includes vehicle rental for your official DMV road test.",
+      "features": [
+        "Everything in Defensive Master Class",
+        "Unlimited mock driving exams",
+        "Priority booking slots",
+        "Driving school vehicle for DMV road test",
+        "Post-license freeway coaching session",
+        "99% Pass Rate Guarantee"
+      ]
+    }
+  ],
+  "reviews": [
+    {
+      "id": 1,
+      "name": "Jenny L.",
+      "rating": 5,
+      "date": "3 weeks ago",
+      "text": "Michael is an amazing instructor! I was terrified of driving in San Francisco — the hills, the traffic, the parallel parking. He was so patient and broke everything down step by step. Passed my DMV test on the first try!",
+      "tag": "First Time Pass",
+      "initials": "JL"
+    },
+    {
+      "id": 2,
+      "name": "Kevin T.",
+      "rating": 5,
+      "date": "1 month ago",
+      "text": "Best driving school in the Bay Area, hands down. The instructors are professional, on time, and genuinely care about your safety. The dual-control car made me feel so much more comfortable as a beginner.",
+      "tag": "Highly Recommended",
+      "initials": "KT"
+    },
+    {
+      "id": 3,
+      "name": "Priya S.",
+      "rating": 5,
+      "date": "2 months ago",
+      "text": "I had my permit for 3 years and was too anxious to drive. Michael Wong's team completely changed that. After 10 lessons I felt confident enough to take my test — and I passed! Worth every penny.",
+      "tag": "Anxiety Overcome",
+      "initials": "PS"
+    },
+    {
+      "id": 4,
+      "name": "David M.",
+      "rating": 5,
+      "date": "1 month ago",
+      "text": "Flexible scheduling that actually works around a busy work schedule. They picked me up from my office downtown and dropped me back after each lesson. The freeway merging practice was a game changer.",
+      "tag": "Flexible Schedule",
+      "initials": "DM"
+    },
+    {
+      "id": 5,
+      "name": "Sarah C.",
+      "rating": 5,
+      "date": "3 weeks ago",
+      "text": "I've recommended this school to everyone I know. Clean cars, patient teachers, and they actually teach you how to handle real SF driving — Lombard Street, steep hills, tight parking. 10/10.",
+      "tag": "SF Specialist",
+      "initials": "SC"
+    },
+    {
+      "id": 6,
+      "name": "Marcus R.",
+      "rating": 5,
+      "date": "2 weeks ago",
+      "text": "Got my insurance discount certificate after completing the Defensive Master Class. The mock DMV test they do is almost identical to the real thing. Felt completely prepared on test day.",
+      "tag": "Insurance Discount",
+      "initials": "MR"
+    }
+  ],
+  "contact": {
+    "phone": "(415) 555-0188",
+    "email": "info@michaelwongdriving.com",
+    "address": "San Francisco, CA — Serving the entire SF Bay Area",
+    "hours": "Open 7 days a week. Office: Mon-Sat 8AM-8PM. Lessons available 24 hours."
+  },
+  "footer": {
+    "companyName": "Michael Wong Driving School",
+    "tagline": "Expert driving instruction in the San Francisco Bay Area. Patient instructors, modern dual-control vehicles, and a proven record of success.",
+    "copyright": "© 2026 Michael Wong Driving Instructor School",
+    "license": "DMV Licensed • CA Driving School",
+    "links": [
+      {
+        "label": "Privacy Policy",
+        "url": "#"
+      },
+      {
+        "label": "Terms of Service",
+        "url": "#"
+      },
+      {
+        "label": "Yelp Reviews",
+        "url": "https://www.yelp.com/biz/michael-wong-driving-instructor-school-san-francisco"
+      }
+    ]
+  },
+  "branding": {
+    "logoText": "MICHAEL WONG",
+    "logoSubtext": "Driving School",
+    "colors": {
+      "primary": "#18181B",
+      "accent": "#38BDF8",
+      "dark": "#09090B",
+      "light": "#3F3F46",
+      "background": "#F0F9FF"
+    },
+    "logoImage": "/images/uploads/logo_img_1783579126346.png"
+  }
+}
