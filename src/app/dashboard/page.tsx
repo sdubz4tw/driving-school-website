@@ -70,6 +70,7 @@ export default function Dashboard() {
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState("");
   const [trafficRange, setTrafficRange] = useState(30);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [trafficData, setTrafficData] = useState<{ date: string; visitors: number; pageViews: number; bookings: number }[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const logoInputRef = useRef<HTMLInputElement>(null);
@@ -83,7 +84,7 @@ export default function Dashboard() {
       .catch(() => {});
   }, [trafficRange]);
 
-  const handleSave = async () => { if (!content) return; setSaving(true); try { const res = await fetch("/api/content", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(content) }); if (res.status === 401) { router.push("/login"); return; } if (res.ok) { setSaved(true); setTimeout(() => setSaved(false), 3000); } } finally { setSaving(false); } };
+  const handleSave = async () => { if (!content) return; setSaving(true); try { const res = await fetch("/api/content", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(content) }); if (res.status === 401) { router.push("/login"); return; } if (res.ok) { setSaved(true); setShowSuccessModal(true); setTimeout(() => setSaved(false), 3000); } } finally { setSaving(false); } };
   const handleLogout = async () => { await fetch("/api/auth/logout", { method: "POST" }); router.push("/login"); };
 
   const updateHero = useCallback((fn: (h: ContentData["hero"]) => ContentData["hero"]) => { setContent(p => p ? { ...p, hero: fn(p.hero) } : p); }, []);
@@ -452,6 +453,20 @@ export default function Dashboard() {
           </div>
         </main>
       </div>
+
+      {/* ═══ SUCCESS POPUP MODAL ═══ */}
+      {showSuccessModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="bg-gray-900 border border-gray-800 rounded-3xl p-8 max-w-sm w-full text-center shadow-2xl mx-4 space-y-5">
+            <div className="w-16 h-16 rounded-full bg-emerald-500/10 text-emerald-400 flex items-center justify-center mx-auto text-2xl border border-emerald-500/20">✓</div>
+            <div className="space-y-2">
+              <h3 className="text-xl font-black text-white">Publish Successful!</h3>
+              <p className="text-sm text-gray-400">All of your edits, image uploads, and color theme changes have been successfully saved and published.</p>
+            </div>
+            <button onClick={() => setShowSuccessModal(false)} className="w-full py-3 rounded-xl bg-emerald-500 text-white font-bold text-sm hover:bg-emerald-400 transition-colors cursor-pointer">Awesome!</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

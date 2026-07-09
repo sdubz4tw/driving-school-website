@@ -1,12 +1,24 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
+import { kv } from "@vercel/kv";
 import fs from "fs/promises";
 import path from "path";
 
 const contentFilePath = path.join(process.cwd(), "src/data/content.json");
+const KV_KEY = "driving_school_content";
+
+// Helper to determine if we should use Vercel KV
+const isKvConfigured = () => !!(process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL);
 
 export async function GET() {
   try {
+    if (isKvConfigured()) {
+      const data = await kv.get(KV_KEY);
+      if (data) {
+        return NextResponse.json(data);
+      }
+    }
+    // Fallback to local file system
     const data = await fs.readFile(contentFilePath, "utf-8");
     return NextResponse.json(JSON.parse(data));
   } catch (error) {
@@ -30,7 +42,12 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Invalid content structure" }, { status: 400 });
     }
 
-    await fs.writeFile(contentFilePath, JSON.stringify(newContent, null, 2), "utf-8");
+    if (isKvConfigured()) {
+      await kv.set(KV_KEY, newContent);
+    } else {
+      await fs.writeFile(contentFilePath, JSON.stringify(newContent, null, 2), "utf-8");
+    }
+
     return NextResponse.json({ success: true });
   } catch (error) {
     return NextResponse.json({ error: "Failed to write content data" }, { status: 500 });
