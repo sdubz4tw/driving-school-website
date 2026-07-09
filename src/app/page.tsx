@@ -73,9 +73,10 @@ export default function Home() {
   const [formData, setFormData] = useState({ name: "", email: "", phone: "", package: "defensive", timePreference: "afternoon", agreeToTerms: false });
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
-  /* ── fetch content ─────────────────────────────── */
+  /* ── fetch content & record pageview ───────────── */
   useEffect(() => {
     fetch("/api/content").then(r => r.ok ? r.json() : null).then(d => { if (d) setContent(d); }).catch(() => {});
+    fetch("/api/analytics", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ type: "pageview" }) }).catch(() => {});
   }, []);
 
   /* ── apply branding CSS vars ────────────────────── */
@@ -126,6 +127,7 @@ export default function Home() {
     if (!formData.agreeToTerms) errs.agreeToTerms = "You must agree to proceed";
     if (Object.keys(errs).length) { setFormErrors(errs); return; }
     setFormSubmitted(true);
+    fetch("/api/analytics", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ type: "booking" }) }).catch(() => {});
   };
 
   /* ── shorthand ─────────────────────────────────── */
@@ -233,7 +235,7 @@ export default function Home() {
           </div>
           <div>
             <p className="text-3xl sm:text-4xl font-black" style={{ color: "var(--brand-accent, #FFE600)" }}>{stats?.instructors ?? "15+"}</p>
-            <p className="text-xs text-gray-400 font-semibold uppercase tracking-wider mt-1">Instructors</p>
+            <p className="text-xs text-gray-400 font-semibold uppercase tracking-wider mt-1">Years of Teaching</p>
           </div>
         </div>
       </section>

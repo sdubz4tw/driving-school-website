@@ -70,13 +70,18 @@ export default function Dashboard() {
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState("");
   const [trafficRange, setTrafficRange] = useState(30);
-  const [trafficData, setTrafficData] = useState(generateTrafficData(30));
+  const [trafficData, setTrafficData] = useState<{ date: string; visitors: number; pageViews: number; bookings: number }[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const logoInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => { fetch("/api/content").then(r => r.json()).then(d => { setContent(d); setLoading(false); }).catch(() => setLoading(false)); }, []);
   useEffect(() => { fetch("/api/images").then(r => r.json()).then(d => { setImages(d.images || []); if (d.limits) setImageLimits(d.limits); }).catch(() => {}); }, []);
-  useEffect(() => { setTrafficData(generateTrafficData(trafficRange)); }, [trafficRange]);
+  useEffect(() => {
+    fetch(`/api/analytics?range=${trafficRange}`)
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (d && d.chartData) setTrafficData(d.chartData); })
+      .catch(() => {});
+  }, [trafficRange]);
 
   const handleSave = async () => { if (!content) return; setSaving(true); try { const res = await fetch("/api/content", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(content) }); if (res.status === 401) { router.push("/login"); return; } if (res.ok) { setSaved(true); setTimeout(() => setSaved(false), 3000); } } finally { setSaving(false); } };
   const handleLogout = async () => { await fetch("/api/auth/logout", { method: "POST" }); router.push("/login"); };
@@ -251,13 +256,18 @@ export default function Dashboard() {
                             }}
                           />
                         </label>
+                        {slide.image && (
+                          <div className="relative w-16 h-10 rounded border border-gray-700 overflow-hidden bg-gray-950 flex-shrink-0">
+                            <img src={slide.image} alt="Slide Preview" className="w-full h-full object-cover" />
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
                   <InputField label="Subtitle" value={slide.subtitle} onChange={v => updateHero(h => { const s = [...h.slides]; s[idx] = { ...s[idx], subtitle: v }; return { ...h, slides: s }; })} />
                 </div>
               ))}
-              <div className="bg-gray-900 rounded-2xl border border-gray-800 p-6 space-y-4"><h3 className="text-sm font-bold text-yellow-400">Stats Bar</h3><div className="grid grid-cols-3 gap-4">{(["passRate", "graduates", "instructors"] as const).map(k => (<InputField key={k} label={k === "passRate" ? "Pass Rate" : k === "graduates" ? "Graduates" : "Instructors"} value={content.hero.stats[k]} onChange={v => updateHero(h => ({ ...h, stats: { ...h.stats, [k]: v } }))} />))}</div></div>
+              <div className="bg-gray-900 rounded-2xl border border-gray-800 p-6 space-y-4"><h3 className="text-sm font-bold text-yellow-400">Stats Bar</h3><div className="grid grid-cols-3 gap-4">{(["passRate", "graduates", "instructors"] as const).map(k => (<InputField key={k} label={k === "passRate" ? "Pass Rate" : k === "graduates" ? "Graduates" : "Years of Teaching"} value={content.hero.stats[k]} onChange={v => updateHero(h => ({ ...h, stats: { ...h.stats, [k]: v } }))} />))}</div></div>
             </div>
           )}
 
