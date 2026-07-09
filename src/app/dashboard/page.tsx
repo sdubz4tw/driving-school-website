@@ -80,9 +80,87 @@ export default function Dashboard() {
   const updateContact = useCallback((fn: (c: Contact) => Contact) => { setContent(p => p ? { ...p, contact: fn(p.contact) } : p); }, []);
   const updateFooter = useCallback((fn: (f: FooterData) => FooterData) => { setContent(p => p ? { ...p, footer: fn(p.footer) } : p); }, []);
   const updateBranding = useCallback((fn: (b: Branding) => Branding) => { setContent(p => p ? { ...p, branding: fn(p.branding) } : p); }, []);
+  const compressImage = (file: File, maxWidth = 1200, maxHeight = 800, quality = 0.7): Promise<File> => {
+    return new Promise((resolve) => {
+      if (file.type === "image/svg+xml") {
+        resolve(file);
+        return;
+      }
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = (event) => {
+        const img = new window.Image();
+        img.src = event.target?.result as string;
+        img.onload = () => {
+          const canvas = document.createElement("canvas");
+          let width = img.width;
+          let height = img.height;
+
+          if (width > maxWidth) {
+            height = Math.round((height * maxWidth) / width);
+            width = maxWidth;
+          }
+          if (height > maxHeight) {
+            width = Math.round((width * maxHeight) / height);
+            height = maxHeight;
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext("2d");
+          ctx?.drawImage(img, 0, 0, width, height);
+
+          canvas.toBlob(
+            (blob) => {
+              if (blob) {
+                resolve(new File([blob], file.name, { type: file.type, lastModified: Date.now() }));
+              } else {
+                resolve(file);
+              }
+            },
+            file.type,
+            quality
+          );
+        };
+        img.onerror = () => resolve(file);
+      };
+      reader.onerror = () => resolve(file);
+    });
+  };
+
   const handleUpload = async (file: File, slot?: string): Promise<string | null> => {
     setUploading(true); setUploadError("");
-    const fd = new FormData(); fd.append("file", file); if (slot) fd.append("slot", slot);
+    let fileToUpload = file;
+    try {
+      fileToUpload = await compressImage(file);
+    } catch {
+      // ignore and upload original file
+    }
+
+    const isProduction = typeof window !== "undefined" && 
+      window.location.hostname !== "localhost" && 
+      !window.location.hostname.includes("127.0.0.1");
+
+    if (isProduction) {
+      try {
+        const reader = new FileReader();
+        return new Promise<string | null>((resolve) => {
+          reader.readAsDataURL(fileToUpload);
+          reader.onload = () => resolve(reader.result as string);
+          reader.onerror = () => { setUploadError("Failed to read file"); resolve(null); };
+        }).then(url => {
+          setUploading(false);
+          return url;
+        });
+      } catch {
+        setUploadError("Failed to convert image");
+        setUploading(false);
+        return null;
+      }
+    }
+
+    // Localhost API upload
+    const fd = new FormData(); fd.append("file", fileToUpload); if (slot) fd.append("slot", slot);
     try {
       const res = await fetch("/api/images", { method: "POST", body: fd });
       const data = await res.json();
@@ -225,6 +303,7 @@ export default function Dashboard() {
             <div className="space-y-6">
               <div className="flex items-center justify-between"><h2 className="text-2xl font-black">Hero Slideshow</h2><button onClick={() => updateHero(h => ({ ...h, slides: [...h.slides, { image: "/images/hero_slide_1.png", title: "New Slide", subtitle: "Edit this subtitle" }] }))} className="px-4 py-2 rounded-lg bg-yellow-400 text-gray-900 font-bold text-xs flex items-center gap-1.5 cursor-pointer hover:bg-yellow-300"><Plus size={14} /> Add Slide</button></div>
               <p className="text-sm text-gray-500">Slides auto-rotate every 6 seconds. Use an uploaded image URL from the Images tab, or a path like <code className="text-yellow-400">/images/hero_slide_1.png</code></p>
+              {uploadError && <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-3 text-sm text-red-400 flex items-center gap-2"><X size={14} />{uploadError}</div>}
               {content.hero.slides.map((slide, idx) => (
                 <div key={idx} className="bg-gray-900 rounded-2xl border border-gray-800 p-6 space-y-4">
                   <div className="flex items-center justify-between"><h3 className="text-sm font-bold text-yellow-400">Slide {idx + 1}</h3>{content.hero.slides.length > 1 && <button onClick={() => updateHero(h => ({ ...h, slides: h.slides.filter((_, i) => i !== idx) }))} className="text-red-400 hover:text-red-300 text-xs font-semibold flex items-center gap-1 cursor-pointer"><Trash2 size={14} />Remove</button>}</div>

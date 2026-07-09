@@ -2,7 +2,7 @@
   "hero": {
     "slides": [
       {
-        "image": "/images/uploads/slide_1_1783637148867.jpg",
+        "image": "/images/uploads/slide_1_1783640811027.png",
         "title": "San Francisco's Most Trusted Driving School",
         "subtitle": "Expert 1-on-1 driving instruction in the SF Bay Area. Patient instructors, dual-control vehicles, and a proven track record of success."
       },
@@ -12,7 +12,7 @@
         "subtitle": "Learn to navigate San Francisco's hills, traffic, and freeways with confidence. Real-world training that prepares you for anything."
       },
       {
-        "image": "/images/uploads/slide_3_1783637584957.jpg",
+        "image": "/images/uploads/slide_3_1783640826805.png",
         "title": "Get Your License — First Try",
         "subtitle": "Join thousands of graduates who passed their DMV road test on the very first attempt. We guarantee results."
       }
@@ -167,6 +167,6 @@
       "light": "#1E3E62",
       "background": "#F8FAFC"
     },
-    "logoImage": "/images/uploads/logo_img_1783635125377.png"
+    "logoImage": "/images/uploads/logo_img_1783640974187.png"
   }
 }
