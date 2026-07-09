@@ -376,7 +376,11 @@ export default function Home() {
             <div><h4 className="text-white font-bold text-xs uppercase tracking-widest mb-4">Contact</h4><p className="text-xs text-gray-500 leading-normal mb-3">{contact.address}</p><a href={`tel:${contact.phone.replace(/[^0-9]/g, "")}`} className="block text-xs font-bold hover:underline mb-1" style={{ color: "var(--brand-accent, #FFE600)" }}>📞 {contact.phone}</a><a href={`mailto:${contact.email}`} className="block text-gray-500 text-xs hover:text-white transition-colors">✉️ {contact.email}</a></div>
           </div>
           <div className="flex flex-col sm:flex-row justify-between items-center gap-4 text-[10px] text-gray-600 font-semibold uppercase tracking-wider">
-            <div className="flex gap-4">{ft.links?.map((l, i) => <a key={i} href={l.url} className="hover:text-gray-400">{l.label}</a>)}<span>{ft.license}</span></div>
+            <div className="flex gap-4">
+              {ft.links?.map((l, i) => <a key={i} href={l.url} className="hover:text-gray-400">{l.label}</a>)}
+              <a href="/login" className="text-gray-500 hover:text-white transition-colors">🔐 Admin Portal</a>
+              <span>{ft.license}</span>
+            </div>
             <p>Designed with safety & care.</p>
           </div>
         </div>
