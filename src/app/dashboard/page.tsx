@@ -17,36 +17,20 @@ interface Contact { phone: string; email: string; address: string; hours: string
 interface FooterData { companyName: string; tagline: string; copyright: string; license: string; links: { label: string; url: string }[] }
 interface Branding { logoText: string; logoSubtext: string; logoImage?: string; colors: { primary: string; accent: string; dark: string; light: string; background: string } }
 interface UploadedImage { name: string; url: string; size: number; uploadedAt?: string }
+interface Booking {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  package: string;
+  timePreference: string;
+  timestamp: string;
+}
 interface ContentData {
   hero: { slides: Slide[]; stats: { passRate: string; graduates: string; instructors: string } };
   packages: Pkg[]; reviews: Review[]; contact: Contact; footer: FooterData; branding: Branding;
 }
 
-/* ── mock traffic data generator ──────────────────────────── */
-function generateTrafficData(days: number) {
-  const data = [];
-  const now = new Date();
-  for (let i = days - 1; i >= 0; i--) {
-    const d = new Date(now); d.setDate(d.getDate() - i);
-    const base = 40 + Math.floor(Math.random() * 60);
-    data.push({
-      date: d.toLocaleDateString("en-US", { month: "short", day: "numeric" }),
-      visitors: base + Math.floor(Math.random() * 30),
-      pageViews: base * 2 + Math.floor(Math.random() * 50),
-      bookings: Math.floor(base / 10) + Math.floor(Math.random() * 3),
-    });
-  }
-  return data;
-}
-
-const RANGE_OPTIONS = [
-  { label: "1 Day", days: 1 },
-  { label: "1 Week", days: 7 },
-  { label: "1 Month", days: 30 },
-  { label: "3 Months", days: 90 },
-  { label: "YTD", days: Math.ceil((Date.now() - new Date(new Date().getFullYear(), 0, 1).getTime()) / 86400000) },
-  { label: "1 Year", days: 365 },
-];
 
 const COLOR_PRESETS = [
   { name: "Navy & Gold", colors: { primary: "#0B192C", accent: "#FFE600", dark: "#030712", light: "#1E3E62", background: "#F8FAFC" } },
@@ -63,26 +47,30 @@ export default function Dashboard() {
   const [content, setContent] = useState<ContentData | null>(null);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
-  const [activeTab, setActiveTab] = useState("analytics");
+  const [activeTab, setActiveTab] = useState("bookings");
   const [loading, setLoading] = useState(true);
   const [images, setImages] = useState<UploadedImage[]>([]);
   const [imageLimits, setImageLimits] = useState({ maxSizeMB: 5, maxDimension: 4096, allowedTypes: ["JPEG", "PNG", "WebP", "SVG"] });
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState("");
-  const [trafficRange, setTrafficRange] = useState(30);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const [trafficData, setTrafficData] = useState<{ date: string; visitors: number; pageViews: number; bookings: number }[]>([]);
+  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [bookingsLoading, setBookingsLoading] = useState(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const logoInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => { fetch("/api/content").then(r => r.json()).then(d => { setContent(d); setLoading(false); }).catch(() => setLoading(false)); }, []);
   useEffect(() => { fetch("/api/images").then(r => r.json()).then(d => { setImages(d.images || []); if (d.limits) setImageLimits(d.limits); }).catch(() => {}); }, []);
   useEffect(() => {
-    fetch(`/api/analytics?range=${trafficRange}`)
-      .then(r => r.ok ? r.json() : null)
-      .then(d => { if (d && d.chartData) setTrafficData(d.chartData); })
-      .catch(() => {});
-  }, [trafficRange]);
+    if (activeTab === "bookings") {
+      setBookingsLoading(true);
+      fetch("/api/bookings")
+        .then(r => r.ok ? r.json() : null)
+        .then(d => { if (d && d.bookings) setBookings(d.bookings); })
+        .catch(() => {})
+        .finally(() => setBookingsLoading(false));
+    }
+  }, [activeTab]);
 
   const handleSave = async () => { if (!content) return; setSaving(true); try { const res = await fetch("/api/content", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(content) }); if (res.status === 401) { router.push("/login"); return; } if (res.ok) { setSaved(true); setShowSuccessModal(true); setTimeout(() => setSaved(false), 3000); } } finally { setSaving(false); } };
   const handleLogout = async () => { await fetch("/api/auth/logout", { method: "POST" }); router.push("/login"); };
@@ -113,11 +101,8 @@ export default function Dashboard() {
   if (loading) return <div className="flex items-center justify-center h-screen bg-gray-950"><div className="animate-spin rounded-full h-10 w-10 border-2 border-white border-t-transparent" /></div>;
   if (!content) return <div className="flex items-center justify-center h-screen bg-gray-950 text-white">Failed to load content.</div>;
 
-  const totals = trafficData.reduce((a, d) => ({ visitors: a.visitors + d.visitors, pageViews: a.pageViews + d.pageViews, bookings: a.bookings + d.bookings }), { visitors: 0, pageViews: 0, bookings: 0 });
-  const maxPV = Math.max(...trafficData.map(d => d.pageViews), 1);
-
   const TABS = [
-    { id: "analytics", label: "Analytics", icon: BarChart3 },
+    { id: "bookings", label: "Bookings", icon: Users },
     { id: "hero", label: "Hero Slides", icon: Eye },
     { id: "packages", label: "Packages", icon: Package },
     { id: "contact", label: "Contact", icon: Phone },
@@ -160,64 +145,77 @@ export default function Dashboard() {
 
         <main className="flex-1 min-w-0 pb-20 lg:pb-0">
 
-          {/* ══════ ANALYTICS ══════ */}
-          {activeTab === "analytics" && (
+          {/* ══════ BOOKINGS ══════ */}
+          {activeTab === "bookings" && (
             <div className="space-y-6">
-              <div className="flex items-center justify-between flex-wrap gap-4">
-                <h2 className="text-2xl font-black">Traffic Analytics</h2>
-                <div className="flex gap-1 bg-gray-900 rounded-xl p-1 border border-gray-800">
-                  {RANGE_OPTIONS.map(r => (
-                    <button key={r.label} onClick={() => setTrafficRange(r.days)} className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${trafficRange === r.days ? "bg-yellow-400 text-gray-900" : "text-gray-500 hover:text-white"}`}>{r.label}</button>
-                  ))}
+              <div className="flex items-center justify-between">
+                <h2 className="text-2xl font-black">Student Bookings & Registrations</h2>
+                <div className="px-3 py-1.5 rounded-lg bg-gray-900 border border-gray-800 text-xs font-semibold text-gray-400">
+                  Total Leads: <span className="text-white font-bold">{bookings.length}</span>
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-                {[
-                  { label: "Unique Visitors", val: totals.visitors.toLocaleString(), icon: Users, change: "+12.3%", up: true },
-                  { label: "Page Views", val: totals.pageViews.toLocaleString(), icon: Globe, change: "+8.7%", up: true },
-                  { label: "Bookings", val: totals.bookings.toLocaleString(), icon: MousePointerClick, change: "+23.1%", up: true },
-                  { label: "Conversion Rate", val: totals.visitors > 0 ? (totals.bookings / totals.visitors * 100).toFixed(1) + "%" : "0%", icon: TrendingUp, change: "-1.2%", up: false },
-                ].map(s => (
-                  <div key={s.label} className="bg-gray-900 rounded-2xl border border-gray-800 p-5">
-                    <div className="flex items-center justify-between mb-3"><s.icon size={18} className="text-yellow-400" /><span className={`text-[10px] font-bold flex items-center gap-0.5 ${s.up ? "text-emerald-400" : "text-red-400"}`}>{s.up ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}{s.change}</span></div>
-                    <p className="text-2xl font-black">{s.val}</p>
-                    <p className="text-xs text-gray-500 font-semibold mt-1">{s.label}</p>
-                  </div>
-                ))}
-              </div>
-
-              {/* Bar chart */}
               <div className="bg-gray-900 rounded-2xl border border-gray-800 p-6">
-                <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4">Page Views Over Time</h3>
-                <div className="flex items-end gap-[2px] h-48 overflow-hidden">
-                  {trafficData.map((d, i) => (
-                    <div key={i} className="flex-1 flex flex-col items-center justify-end group relative min-w-0">
-                      <div className="absolute -top-8 bg-gray-800 text-[9px] text-white font-mono px-1.5 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">{d.pageViews} views</div>
-                      <div className="w-full rounded-t-sm transition-all duration-200 group-hover:opacity-80 min-h-[2px]" style={{ height: `${(d.pageViews / maxPV) * 100}%`, backgroundColor: "var(--brand-accent, #FFE600)" }} />
-                    </div>
-                  ))}
-                </div>
-                {trafficData.length <= 31 && (
-                  <div className="flex gap-[2px] mt-2">
-                    {trafficData.map((d, i) => (<div key={i} className="flex-1 text-center text-[7px] text-gray-600 font-mono truncate min-w-0">{i % Math.max(1, Math.floor(trafficData.length / 10)) === 0 ? d.date : ""}</div>))}
+                <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4">Registration Log</h3>
+                
+                {bookingsLoading ? (
+                  <div className="flex items-center justify-center py-12">
+                    <div className="animate-spin rounded-full h-8 w-8 border-2 border-yellow-400 border-t-transparent" />
+                  </div>
+                ) : bookings.length === 0 ? (
+                  <div className="text-center py-12 text-gray-600">
+                    <Users size={48} className="mx-auto mb-3 opacity-30" />
+                    <p className="text-sm font-semibold">No bookings registered yet</p>
+                    <p className="text-xs mt-1">Incoming form registrations will appear here in real-time.</p>
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="border-b border-gray-800 text-gray-500 text-xs uppercase tracking-wider">
+                          <th className="text-left py-3 font-semibold">Student</th>
+                          <th className="text-left py-3 font-semibold">Contact Info</th>
+                          <th className="text-left py-3 font-semibold">Selected Package</th>
+                          <th className="text-left py-3 font-semibold">Preference</th>
+                          <th className="text-left py-3 font-semibold">Registered At</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {bookings.map(b => (
+                          <tr key={b.id} className="border-b border-gray-800/50 hover:bg-gray-800/10 transition-colors">
+                            <td className="py-4 font-bold text-white pr-4">{b.name}</td>
+                            <td className="py-4 pr-4">
+                              <p className="text-xs text-gray-300 font-semibold">{b.phone}</p>
+                              <p className="text-xs text-gray-500">{b.email}</p>
+                            </td>
+                            <td className="py-4 pr-4">
+                              <span className={`px-2.5 py-1 rounded-full text-xs font-extrabold uppercase tracking-wide inline-block ${
+                                b.package === "elite"
+                                  ? "bg-purple-500/10 text-purple-400 border border-purple-500/20"
+                                  : b.package === "defensive"
+                                  ? "bg-yellow-400/10 text-yellow-400 border border-yellow-400/20"
+                                  : "bg-blue-400/10 text-blue-400 border border-blue-400/20"
+                              }`}>
+                                {b.package === "elite" ? "Elite Test Readiness" : b.package === "defensive" ? "Defensive Master Class" : "Starter Permit Pack"}
+                              </span>
+                            </td>
+                            <td className="py-4 pr-4 capitalize text-gray-300 font-semibold">{b.timePreference}</td>
+                            <td className="py-4 font-mono text-xs text-gray-500">
+                              {new Date(b.timestamp).toLocaleString("en-US", {
+                                month: "short",
+                                day: "numeric",
+                                hour: "2-digit",
+                                minute: "2-digit",
+                                second: "2-digit",
+                                hour12: false
+                              })}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
                   </div>
                 )}
-              </div>
-
-              {/* Recent bookings table */}
-              <div className="bg-gray-900 rounded-2xl border border-gray-800 p-6">
-                <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4">Recent Booking Activity</h3>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead><tr className="border-b border-gray-800 text-gray-500 text-xs uppercase tracking-wider">
-                      <th className="text-left py-2 font-semibold">Date</th><th className="text-left py-2 font-semibold">Visitors</th><th className="text-left py-2 font-semibold">Page Views</th><th className="text-left py-2 font-semibold">Bookings</th>
-                    </tr></thead>
-                    <tbody>{trafficData.slice(-7).reverse().map((d, i) => (
-                      <tr key={i} className="border-b border-gray-800/50"><td className="py-2.5 text-gray-300 font-medium">{d.date}</td><td className="py-2.5">{d.visitors}</td><td className="py-2.5">{d.pageViews}</td><td className="py-2.5"><span className="px-2 py-0.5 rounded-full bg-yellow-400/10 text-yellow-400 text-xs font-bold">{d.bookings}</span></td></tr>
-                    ))}</tbody>
-                  </table>
-                </div>
               </div>
             </div>
           )}

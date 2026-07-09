@@ -127,7 +127,11 @@ export default function Home() {
     if (!formData.agreeToTerms) errs.agreeToTerms = "You must agree to proceed";
     if (Object.keys(errs).length) { setFormErrors(errs); return; }
     setFormSubmitted(true);
-    fetch("/api/analytics", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ type: "booking" }) }).catch(() => {});
+    fetch("/api/bookings", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(formData)
+    }).catch(() => {});
   };
 
   /* ── shorthand ─────────────────────────────────── */

@@ -1,0 +1,13 @@
+{
+  "bookings": [
+    {
+      "id": "b_1783637532609p93r",
+      "name": "Steven W",
+      "email": "abc@gmail.com",
+      "phone": "4156509866",
+      "package": "starter",
+      "timePreference": "morning",
+      "timestamp": "2026-07-09T22:52:12.609Z"
+    }
+  ]
+}

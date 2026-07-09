@@ -12,7 +12,7 @@
         "subtitle": "Learn to navigate San Francisco's hills, traffic, and freeways with confidence. Real-world training that prepares you for anything."
       },
       {
-        "image": "/images/uploads/slide_3_1783637081197.jpg",
+        "image": "/images/uploads/slide_3_1783637584957.jpg",
         "title": "Get Your License — First Try",
         "subtitle": "Join thousands of graduates who passed their DMV road test on the very first attempt. We guarantee results."
       }
@@ -20,7 +20,7 @@
     "stats": {
       "passRate": "98%",
       "graduates": "10k+",
-      "instructors": "15+"
+      "instructors": "5+"
     }
   },
   "packages": [
