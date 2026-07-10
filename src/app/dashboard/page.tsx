@@ -72,7 +72,48 @@ export default function Dashboard() {
     }
   }, [activeTab]);
 
-  const handleSave = async () => { if (!content) return; setSaving(true); try { const res = await fetch("/api/content", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(content) }); if (res.status === 401) { router.push("/login"); return; } if (res.ok) { setSaved(true); setShowSuccessModal(true); setTimeout(() => setSaved(false), 3000); } } finally { setSaving(false); } };
+  const handleSave = async () => {
+    if (!content) return;
+    setSaving(true);
+    console.log("FRONTEND LOG: Initiating save operation with content:", content);
+    try {
+      const res = await fetch("/api/content", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(content)
+      });
+      console.log("FRONTEND LOG: Save response status is", res.status);
+      if (res.status === 401) {
+        console.warn("FRONTEND LOG: Unauthorized save attempt, redirecting to login");
+        router.push("/login");
+        return;
+      }
+      if (!res.ok) {
+        const errText = await res.text();
+        let errMsg = "Unknown server error";
+        try {
+          const parsed = JSON.parse(errText);
+          errMsg = parsed.error || errMsg;
+        } catch {
+          errMsg = errText || errMsg;
+        }
+        console.error("FRONTEND LOG: Save request failed on server with message:", errMsg);
+        alert("FRONTEND ERROR: Server returned failure status: " + errMsg);
+        return;
+      }
+      
+      const data = await res.json();
+      console.log("FRONTEND LOG: Save completed successfully, server payload:", data);
+      setSaved(true);
+      setShowSuccessModal(true);
+      setTimeout(() => setSaved(false), 3000);
+    } catch (error: any) {
+      console.error("FRONTEND LOG: Network or runtime exception caught in handleSave:", error);
+      alert("FRONTEND ERROR: " + (error?.message || String(error)));
+    } finally {
+      setSaving(false);
+    }
+  };
   const handleLogout = async () => { await fetch("/api/auth/logout", { method: "POST" }); router.push("/login"); };
 
   const updateHero = useCallback((fn: (h: ContentData["hero"]) => ContentData["hero"]) => { setContent(p => p ? { ...p, hero: fn(p.hero) } : p); }, []);
