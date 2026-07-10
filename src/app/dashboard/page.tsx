@@ -137,29 +137,7 @@ export default function Dashboard() {
       // ignore and upload original file
     }
 
-    const isProduction = typeof window !== "undefined" && 
-      window.location.hostname !== "localhost" && 
-      !window.location.hostname.includes("127.0.0.1");
-
-    if (isProduction) {
-      try {
-        const reader = new FileReader();
-        return new Promise<string | null>((resolve) => {
-          reader.readAsDataURL(fileToUpload);
-          reader.onload = () => resolve(reader.result as string);
-          reader.onerror = () => { setUploadError("Failed to read file"); resolve(null); };
-        }).then(url => {
-          setUploading(false);
-          return url;
-        });
-      } catch {
-        setUploadError("Failed to convert image");
-        setUploading(false);
-        return null;
-      }
-    }
-
-    // Localhost API upload
+    // Always route uploads to the API endpoint to utilize Vercel Blob or local storage
     const fd = new FormData(); fd.append("file", fileToUpload); if (slot) fd.append("slot", slot);
     try {
       const res = await fetch("/api/images", { method: "POST", body: fd });
