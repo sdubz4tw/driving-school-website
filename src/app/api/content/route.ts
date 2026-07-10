@@ -5,26 +5,45 @@ import fs from "fs/promises";
 import path from "path";
 
 const contentFilePath = path.join(process.cwd(), "src/data/content.json");
-const KV_KEY = "driving_school_content";
 
 export const dynamic = "force-dynamic";
 
-// Helper to determine if we should use Vercel KV
-const isKvConfigured = () => !!(process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL);
+const isBlobConfigured = () => 
+  !!(process.env.BLOB_READ_WRITE_TOKEN || 
+     process.env.VERCEL_OIDC_TOKEN || 
+     process.env.BLOB_STORE_ID);
 
 export async function GET() {
+  console.log("SERVER LOG: GET /api/content request received");
   try {
-    if (isKvConfigured()) {
-      const { kv } = await import("@vercel/kv");
-      const data = await kv.get(KV_KEY);
-      if (data) {
-        return NextResponse.json(data);
+    if (isBlobConfigured()) {
+      console.log("SERVER LOG: Vercel Blob is configured, checking for content.json in blob store");
+      const { list } = await import("@vercel/blob");
+      const { blobs } = await list();
+      const contentBlob = blobs.find(b => b.pathname === "content.json");
+      
+      if (contentBlob) {
+        console.log("SERVER LOG: Found content.json in blob store, URL:", contentBlob.url);
+        // Add cache busting to the fetch request to prevent browser caching of the blob URL
+        const res = await fetch(`${contentBlob.url}?t=${Date.now()}`);
+        if (res.ok) {
+          const data = await res.json();
+          console.log("SERVER LOG: Successfully loaded content from Vercel Blob");
+          return NextResponse.json(data);
+        }
+        console.warn("SERVER LOG: Failed to fetch blob content from URL, falling back to local file");
+      } else {
+        console.log("SERVER LOG: content.json not found in Vercel Blob yet, falling back to local file");
       }
+    } else {
+      console.log("SERVER LOG: Vercel Blob not configured, loading from local file");
     }
+
     // Fallback to local file system
     const data = await fs.readFile(contentFilePath, "utf-8");
     return NextResponse.json(JSON.parse(data));
   } catch (error: any) {
+    console.error("SERVER LOG: GET request failed:", error);
     return NextResponse.json({ error: error?.message || String(error) }, { status: 500 });
   }
 }
@@ -32,7 +51,6 @@ export async function GET() {
 export async function POST(request: Request) {
   console.log("SERVER LOG: Received POST /api/content request");
   try {
-    console.log("SERVER LOG: Checking auth cookies");
     const cookieStore = await cookies();
     const session = cookieStore.get("drivewell_session");
 
@@ -50,13 +68,19 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Invalid content structure" }, { status: 400 });
     }
 
-    if (isKvConfigured()) {
-      console.log("SERVER LOG: Database KV is configured, saving to Vercel KV");
-      const { kv } = await import("@vercel/kv");
-      await kv.set(KV_KEY, newContent);
-      console.log("SERVER LOG: Save to Vercel KV successful");
+    if (isBlobConfigured()) {
+      console.log("SERVER LOG: Vercel Blob is configured, uploading content.json to Vercel Blob");
+      const { put } = await import("@vercel/blob");
+      
+      const payloadString = JSON.stringify(newContent, null, 2);
+      const blob = await put("content.json", payloadString, {
+        access: "public",
+        contentType: "application/json",
+        addRandomSuffix: false
+      });
+      console.log("SERVER LOG: Vercel Blob upload successful, URL:", blob.url);
     } else {
-      console.log("SERVER LOG: Local filesystem fallback, saving to", contentFilePath);
+      console.log("SERVER LOG: Local filesystem fallback, saving to content.json");
       await fs.writeFile(contentFilePath, JSON.stringify(newContent, null, 2), "utf-8");
       console.log("SERVER LOG: Local file write successful");
     }
