@@ -13,8 +13,44 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "DriveWell Academy | Premium Driving School & Defensive Driving Lessons",
-  description: "Learn to drive safely with DriveWell Academy. 1-on-1 certified driving instructors, dual-control safety vehicles, and standard-setting DMV test prep. Book your lessons today!",
+  title: {
+    default: "Michael Wong Driving School | San Francisco Bay Area",
+    template: "%s | Michael Wong Driving School"
+  },
+  description: "Patient behind-the-wheel driving instruction in the SF Bay Area. DMV permit prep, anxious driver training, and free pickup/drop-off. Book today!",
+  keywords: [
+    "driving instruction San Francisco",
+    "Bay Area driving school",
+    "patient driving instructors",
+    "behind the wheel training",
+    "DMV road test preparation",
+    "complimentary pickup drop-off",
+    "San Francisco driving lessons",
+    "anxious teen driver training"
+  ],
+  metadataBase: new URL("https://www.michaelwongdrivingschool.com"),
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: "https://www.michaelwongdrivingschool.com",
+    title: "Michael Wong Driving School | San Francisco Bay Area",
+    description: "Patient behind-the-wheel driving instruction in the SF Bay Area. DMV permit prep, anxious driver training, and free pickup/drop-off. Book today!",
+    siteName: "Michael Wong Driving School",
+    images: [
+      {
+        url: "/og-image.jpg",
+        width: 1200,
+        height: 630,
+        alt: "Michael Wong Driving School - San Francisco Bay Area"
+      }
+    ]
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Michael Wong Driving School | San Francisco Bay Area",
+    description: "Patient behind-the-wheel driving instruction in the SF Bay Area. DMV permit prep, anxious driver training, and free pickup/drop-off.",
+    images: ["/og-image.jpg"]
+  }
 };
 
 export default function RootLayout({
