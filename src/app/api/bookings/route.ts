@@ -8,6 +8,8 @@ import path from "path";
 const bookingsFilePath = path.join(process.cwd(), "src/data/bookings.json");
 const KV_KEY = "driving_school_bookings";
 
+export const dynamic = "force-dynamic";
+
 interface Booking {
   id: string;
   name: string;

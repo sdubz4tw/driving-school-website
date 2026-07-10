@@ -75,7 +75,7 @@ export default function Home() {
 
   /* ── fetch content & record pageview ───────────── */
   useEffect(() => {
-    fetch("/api/content").then(r => r.ok ? r.json() : null).then(d => { if (d) setContent(d); }).catch(() => {});
+    fetch(`/api/content?t=${Date.now()}`).then(r => r.ok ? r.json() : null).then(d => { if (d) setContent(d); }).catch(() => {});
     fetch("/api/analytics", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ type: "pageview" }) }).catch(() => {});
   }, []);
 

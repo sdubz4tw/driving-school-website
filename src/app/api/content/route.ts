@@ -7,6 +7,8 @@ import path from "path";
 const contentFilePath = path.join(process.cwd(), "src/data/content.json");
 const KV_KEY = "driving_school_content";
 
+export const dynamic = "force-dynamic";
+
 // Helper to determine if we should use Vercel KV
 const isKvConfigured = () => !!(process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL);
 

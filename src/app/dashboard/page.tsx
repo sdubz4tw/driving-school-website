@@ -513,12 +513,12 @@ export default function Dashboard() {
       {showSuccessModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
           <div className="bg-gray-900 border border-gray-800 rounded-3xl p-8 max-w-sm w-full text-center shadow-2xl mx-4 space-y-5">
-            <div className="w-16 h-16 rounded-full bg-emerald-500/10 text-emerald-400 flex items-center justify-center mx-auto text-2xl border border-emerald-500/20">✓</div>
+            <div className="w-16 h-16 rounded-full bg-emerald-500/10 text-emerald-400 flex items-center justify-center mx-auto text-3xl border border-emerald-500/20 font-bold">✓</div>
             <div className="space-y-2">
-              <h3 className="text-xl font-black text-white">Publish Successful!</h3>
-              <p className="text-sm text-gray-400">All of your edits, image uploads, and color theme changes have been successfully saved and published.</p>
+              <h3 className="text-lg font-black text-white">Upload or changes saved successfully!</h3>
+              <p className="text-xs text-gray-400">Your site has been updated in real-time. Any open browsers will reflect these branding and content updates immediately.</p>
             </div>
-            <button onClick={() => setShowSuccessModal(false)} className="w-full py-3 rounded-xl bg-emerald-500 text-white font-bold text-sm hover:bg-emerald-400 transition-colors cursor-pointer">Awesome!</button>
+            <button onClick={() => setShowSuccessModal(false)} className="w-full py-3 rounded-xl bg-emerald-500 text-white font-bold text-sm hover:bg-emerald-400 transition-colors cursor-pointer">Okay!</button>
           </div>
         </div>
       )}
