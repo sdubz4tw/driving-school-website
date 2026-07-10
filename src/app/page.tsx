@@ -73,10 +73,9 @@ export default function Home() {
   const [formData, setFormData] = useState({ name: "", email: "", phone: "", package: "defensive", timePreference: "afternoon", agreeToTerms: false });
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
-  /* ── fetch content & record pageview ───────────── */
+  /* ── fetch content ─────────────────────────────── */
   useEffect(() => {
     fetch(`/api/content?t=${Date.now()}`).then(r => r.ok ? r.json() : null).then(d => { if (d) setContent(d); }).catch(() => {});
-    fetch("/api/analytics", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ type: "pageview" }) }).catch(() => {});
   }, []);
 
   /* ── apply branding CSS vars ────────────────────── */
@@ -154,8 +153,8 @@ export default function Home() {
                 <Image src={b.logoImage} alt={b.logoText} fill className="object-contain" />
               </div>
             ) : (
-              <div className="w-10 h-10 rounded-lg flex items-center justify-center font-black text-xl tracking-tighter group-hover:scale-105 transition-transform duration-200 shadow-md" style={{ backgroundColor: "var(--brand-accent, #FFE600)", color: "var(--brand-primary, #0B192C)" }}>
-                {b.logoText?.[0] ?? "D"}
+              <div className="w-10 h-10 rounded-lg flex items-center justify-center font-black text-sm tracking-tighter group-hover:scale-105 transition-transform duration-200 shadow-md" style={{ backgroundColor: "var(--brand-accent, #FFE600)", color: "var(--brand-primary, #0B192C)" }}>
+                {b.logoText ? b.logoText.split(" ").map(w => w[0]).join("").slice(0, 2) : "MW"}
               </div>
             )}
             <div className="flex flex-col">
@@ -368,8 +367,8 @@ export default function Home() {
                     <Image src={b.logoImage} alt={b.logoText} fill className="object-contain" />
                   </div>
                 ) : (
-                  <div className="w-8 h-8 rounded flex items-center justify-center font-black text-base" style={{ backgroundColor: "var(--brand-accent, #FFE600)", color: "var(--brand-primary, #0B192C)" }}>
-                    {b.logoText?.[0] ?? "D"}
+                  <div className="w-8 h-8 rounded flex items-center justify-center font-black text-xs" style={{ backgroundColor: "var(--brand-accent, #FFE600)", color: "var(--brand-primary, #0B192C)" }}>
+                    {b.logoText ? b.logoText.split(" ").map(w => w[0]).join("").slice(0, 2) : "MW"}
                   </div>
                 )}
                 <span className="text-white font-extrabold tracking-wide text-base leading-none">{ft.companyName}</span>
