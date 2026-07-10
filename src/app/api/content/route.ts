@@ -76,7 +76,8 @@ export async function POST(request: Request) {
       const blob = await put("content.json", payloadString, {
         access: "public",
         contentType: "application/json",
-        addRandomSuffix: false
+        addRandomSuffix: false,
+        allowOverwrite: true
       });
       console.log("SERVER LOG: Vercel Blob upload successful, URL:", blob.url);
     } else {
