@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
+import { revalidatePath } from "next/cache";
 import { put } from "@vercel/blob";
 import fs from "fs";
 import path from "path";
+
+export const dynamic = "force-dynamic";
 
 const UPLOAD_DIR = path.join(process.cwd(), "public", "images", "uploads");
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
@@ -73,6 +76,8 @@ export async function POST(request: NextRequest) {
       const blob = await put(safeName, file, {
         access: "public",
       });
+      revalidatePath("/");
+      revalidatePath("/dashboard");
       return NextResponse.json({
         success: true,
         image: {
@@ -91,6 +96,8 @@ export async function POST(request: NextRequest) {
         const arrayBuffer = await file.arrayBuffer();
         fs.writeFileSync(filePath, Buffer.from(arrayBuffer));
 
+        revalidatePath("/");
+        revalidatePath("/dashboard");
         return NextResponse.json({
           success: true,
           image: {
@@ -106,6 +113,8 @@ export async function POST(request: NextRequest) {
         const base64String = Buffer.from(arrayBuffer).toString("base64");
         const dataUrl = `data:${file.type};base64,${base64String}`;
 
+        revalidatePath("/");
+        revalidatePath("/dashboard");
         return NextResponse.json({
           success: true,
           image: {

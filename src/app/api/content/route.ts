@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
+import { revalidatePath } from "next/cache";
 import fs from "fs/promises";
 import path from "path";
 
@@ -50,6 +51,9 @@ export async function POST(request: Request) {
     } else {
       await fs.writeFile(contentFilePath, JSON.stringify(newContent, null, 2), "utf-8");
     }
+
+    revalidatePath("/");
+    revalidatePath("/dashboard");
 
     return NextResponse.json({ success: true });
   } catch (error: any) {
