@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { kv } from "@vercel/kv";
 import fs from "fs/promises";
 import { existsSync } from "fs";
 import path from "path";
@@ -22,21 +21,23 @@ interface Booking {
 
 const isKvConfigured = () => !!(process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL);
 
-function isAuthenticated(cookieStore: ReturnType<typeof cookies> extends Promise<infer T> ? T : never): boolean {
+async function isAuthenticated(cookieStore: ReturnType<typeof cookies> extends Promise<infer T> ? T : never): Promise<boolean> {
   const session = cookieStore.get("drivewell_session");
   return session?.value === "authorized_session_token_value";
 }
 
 /* GET — fetch all bookings (admin only) */
 export async function GET() {
-  const cookieStore = await cookies();
-  if (!isAuthenticated(cookieStore)) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
   try {
+    const cookieStore = await cookies();
+    const isAuthed = await isAuthenticated(cookieStore);
+    if (!isAuthed) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     let bookingsList: Booking[] = [];
     if (isKvConfigured()) {
+      const { kv } = await import("@vercel/kv");
       const data = await kv.get<{ bookings: Booking[] }>(KV_KEY);
       if (data && data.bookings) {
         bookingsList = data.bookings;
@@ -55,8 +56,8 @@ export async function GET() {
     bookingsList.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 
     return NextResponse.json({ bookings: bookingsList });
-  } catch (error) {
-    return NextResponse.json({ error: "Failed to read bookings" }, { status: 500 });
+  } catch (error: any) {
+    return NextResponse.json({ error: error?.message || String(error) }, { status: 500 });
   }
 }
 
@@ -83,6 +84,7 @@ export async function POST(request: NextRequest) {
     let currentBookings: Booking[] = [];
 
     if (isKvConfigured()) {
+      const { kv } = await import("@vercel/kv");
       const data = await kv.get<{ bookings: Booking[] }>(KV_KEY);
       if (data && data.bookings) {
         currentBookings = data.bookings;
@@ -105,7 +107,7 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json({ success: true, booking: newBooking });
-  } catch (error) {
-    return NextResponse.json({ error: "Failed to save booking" }, { status: 500 });
+  } catch (error: any) {
+    return NextResponse.json({ error: error?.message || String(error) }, { status: 500 });
   }
 }

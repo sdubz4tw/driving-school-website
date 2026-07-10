@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { kv } from "@vercel/kv";
 import fs from "fs/promises";
 import path from "path";
 
@@ -15,6 +14,7 @@ const isKvConfigured = () => !!(process.env.KV_REST_API_URL || process.env.UPSTA
 export async function GET() {
   try {
     if (isKvConfigured()) {
+      const { kv } = await import("@vercel/kv");
       const data = await kv.get(KV_KEY);
       if (data) {
         return NextResponse.json(data);
@@ -23,8 +23,8 @@ export async function GET() {
     // Fallback to local file system
     const data = await fs.readFile(contentFilePath, "utf-8");
     return NextResponse.json(JSON.parse(data));
-  } catch (error) {
-    return NextResponse.json({ error: "Failed to read content data" }, { status: 500 });
+  } catch (error: any) {
+    return NextResponse.json({ error: error?.message || String(error) }, { status: 500 });
   }
 }
 
@@ -45,13 +45,14 @@ export async function POST(request: Request) {
     }
 
     if (isKvConfigured()) {
+      const { kv } = await import("@vercel/kv");
       await kv.set(KV_KEY, newContent);
     } else {
       await fs.writeFile(contentFilePath, JSON.stringify(newContent, null, 2), "utf-8");
     }
 
     return NextResponse.json({ success: true });
-  } catch (error) {
-    return NextResponse.json({ error: "Failed to write content data" }, { status: 500 });
+  } catch (error: any) {
+    return NextResponse.json({ error: error?.message || String(error) }, { status: 500 });
   }
 }
