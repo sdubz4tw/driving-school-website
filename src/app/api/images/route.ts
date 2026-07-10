@@ -14,7 +14,10 @@ function isAuthenticated(cookieStore: ReturnType<typeof cookies> extends Promise
   return session?.value === "authorized_session_token_value";
 }
 
-const isBlobConfigured = () => !!process.env.BLOB_READ_WRITE_TOKEN;
+const isBlobConfigured = () => 
+  !!(process.env.BLOB_READ_WRITE_TOKEN || 
+     process.env.VERCEL_OIDC_TOKEN || 
+     process.env.BLOB_STORE_ID);
 
 /* GET — list uploaded images */
 export async function GET() {
@@ -114,8 +117,8 @@ export async function POST(request: NextRequest) {
         });
       }
     }
-  } catch (error) {
-    return NextResponse.json({ error: "Upload failed" }, { status: 500 });
+  } catch (error: any) {
+    return NextResponse.json({ error: error?.message || String(error) }, { status: 500 });
   }
 }
 
