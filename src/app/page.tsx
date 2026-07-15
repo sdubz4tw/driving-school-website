@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import Image from "next/image";
+import { useSession } from "next-auth/react";
 import {
   Star,
   Pencil,
@@ -66,7 +67,15 @@ export default function Home() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isAdmin, setIsAdmin] = useState(false);
 
+  const { data: session } = useSession();
+
   const [content, setContent] = useState<SiteContent>(DEFAULT_CONTENT);
+
+  useEffect(() => {
+    if (session) {
+      setIsAdmin(true);
+    }
+  }, [session]);
 
   /* ── fetch content ─────────────────────────────── */
   useEffect(() => {
