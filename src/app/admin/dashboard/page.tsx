@@ -48,6 +48,16 @@ export default function Dashboard() {
   useEffect(() => { fetch("/api/content").then(r => r.json()).then(d => { setContent(d); setLoading(false); }).catch(() => setLoading(false)); }, []);
   useEffect(() => { fetch("/api/images").then(r => r.json()).then(d => { setImages(d.images || []); if (d.limits) setImageLimits(d.limits); }).catch(() => {}); }, []);
 
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const tab = params.get("tab");
+      if (tab && ["hero", "contact", "footer", "images", "branding"].includes(tab)) {
+        setActiveTab(tab);
+      }
+    }
+  }, []);
+
   const handleSave = async () => {
     if (!content) return;
     setSaving(true);

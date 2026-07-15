@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import Image from "next/image";
 import {
   Star,
+  Pencil,
   Check,
   Phone,
   Mail,
@@ -63,12 +64,18 @@ export default function Home() {
   /* ── state ─────────────────────────────────────── */
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   const [content, setContent] = useState<SiteContent>(DEFAULT_CONTENT);
 
   /* ── fetch content ─────────────────────────────── */
   useEffect(() => {
     fetch(`/api/content?t=${Date.now()}`).then(r => r.ok ? r.json() : null).then(d => { if (d) setContent(d); }).catch(() => {});
+  }, []);
+
+  /* ── check auth status ─────────────────────────── */
+  useEffect(() => {
+    fetch("/api/auth/check").then(r => r.json()).then(d => { if (d.authenticated) setIsAdmin(true); }).catch(() => {});
   }, []);
 
   /* ── apply branding CSS vars ────────────────────── */
@@ -148,6 +155,11 @@ export default function Home() {
       {/* ═══════════════════ HERO SLIDESHOW ═══════════════════ */}
       {vis.hero !== false && (
         <section id="hero" className="relative w-full overflow-hidden" style={{ height: "85vh", minHeight: "550px" }}>
+          {isAdmin && (
+            <a href="/admin/dashboard?tab=hero" className="absolute top-6 right-6 z-30 inline-flex items-center gap-1.5 bg-yellow-400 text-gray-900 px-4 py-2 rounded-xl text-xs font-black hover:scale-105 transition-all shadow-xl border border-yellow-300" title="Edit Hero Section">
+              <Pencil size={14} /> Edit Hero
+            </a>
+          )}
           {/* Slides */}
           {slides.map((slide, idx) => (
             <div key={idx} className="absolute inset-0 transition-opacity duration-1000 ease-in-out" style={{ opacity: currentSlide === idx ? 1 : 0, zIndex: currentSlide === idx ? 1 : 0 }}>
@@ -278,7 +290,14 @@ export default function Home() {
         <section id="register" className="py-20 scroll-mt-10" style={{ backgroundColor: "var(--brand-bg, #F8FAFC)" }}>
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-3xl mx-auto">
-              <span className="font-extrabold text-xs uppercase tracking-widest px-3 py-1 rounded-full border" style={{ color: "var(--brand-light, #1E3E62)", borderColor: "color-mix(in srgb, var(--brand-light) 15%, transparent)" }}>Contact Us</span>
+              <div className="flex items-center gap-3">
+                <span className="font-extrabold text-xs uppercase tracking-widest px-3 py-1 rounded-full border" style={{ color: "var(--brand-light, #1E3E62)", borderColor: "color-mix(in srgb, var(--brand-light) 15%, transparent)" }}>Contact Us</span>
+                {isAdmin && (
+                  <a href="/admin/dashboard?tab=contact" className="inline-flex items-center gap-1.5 bg-yellow-400 text-gray-900 px-3 py-1.5 rounded-full text-[10px] font-black hover:scale-105 transition-all shadow-md" title="Edit Contact Section">
+                    <Pencil size={11} /> Edit Contact
+                  </a>
+                )}
+              </div>
               <h2 className="text-3xl sm:text-4xl font-black mt-4 leading-tight">{contact.title ?? "Ready to take the"} <br /><span style={{ color: "var(--brand-light, #1E3E62)" }}>{contact.titleHighlight ?? "driver's seat?"}</span></h2>
               <p className="text-gray-600 mt-4 leading-relaxed font-medium">{contact.description ?? "Get in touch with us to schedule lessons or ask questions. Our coordinator will contact you shortly."}</p>
               <div className="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-6">
