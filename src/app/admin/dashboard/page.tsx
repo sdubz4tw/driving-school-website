@@ -4,33 +4,21 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import {
-  Save, LogOut, Plus, Trash2, Palette, Package, Phone, Eye,
+  Save, LogOut, Plus, Trash2, Palette, Phone, Eye,
   LayoutGrid, FileText, Upload, ImageIcon, BarChart3, TrendingUp,
   Users, MousePointerClick, Globe, ArrowUpRight, ArrowDownRight, X,
 } from "lucide-react";
+import type {
+  SiteContent,
+  Package as Pkg,
+  ContactInfo as Contact,
+  FooterData,
+  Branding,
+  UploadedImage,
+} from "@/types";
 
 /* ── types ─────────────────────────────────────────────────── */
-interface Slide { image: string; title: string; subtitle: string }
-interface Pkg { id: string; name: string; price: string; lessons: string; duration: string; popular: boolean; tagline: string; features: string[] }
-interface Review { id: number; name: string; rating: number; date: string; text: string; tag: string; initials: string }
-interface Contact { phone: string; email: string; address: string; hours: string }
-interface FooterData { companyName: string; tagline: string; copyright: string; license: string; links: { label: string; url: string }[] }
-interface Branding { logoText: string; logoSubtext: string; logoImage?: string; colors: { primary: string; accent: string; dark: string; light: string; background: string } }
-interface UploadedImage { name: string; url: string; size: number; uploadedAt?: string }
-interface Booking {
-  id: string;
-  name: string;
-  email: string;
-  phone: string;
-  package: string;
-  timePreference: string;
-  timestamp: string;
-}
-interface ContentData {
-  hero: { slides: Slide[]; stats: { passRate: string; graduates: string; instructors: string } };
-  packages: Pkg[]; reviews: Review[]; contact: Contact; footer: FooterData; branding: Branding;
-}
-
+type ContentData = SiteContent;
 
 const COLOR_PRESETS = [
   { name: "Navy & Gold", colors: { primary: "#0B192C", accent: "#FFE600", dark: "#030712", light: "#1E3E62", background: "#F8FAFC" } },
@@ -47,30 +35,18 @@ export default function Dashboard() {
   const [content, setContent] = useState<ContentData | null>(null);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
-  const [activeTab, setActiveTab] = useState("bookings");
+  const [activeTab, setActiveTab] = useState("hero");
   const [loading, setLoading] = useState(true);
   const [images, setImages] = useState<UploadedImage[]>([]);
   const [imageLimits, setImageLimits] = useState({ maxSizeMB: 5, maxDimension: 4096, allowedTypes: ["JPEG", "PNG", "WebP", "SVG"] });
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState("");
   const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const [bookings, setBookings] = useState<Booking[]>([]);
-  const [bookingsLoading, setBookingsLoading] = useState(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const logoInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => { fetch("/api/content").then(r => r.json()).then(d => { setContent(d); setLoading(false); }).catch(() => setLoading(false)); }, []);
   useEffect(() => { fetch("/api/images").then(r => r.json()).then(d => { setImages(d.images || []); if (d.limits) setImageLimits(d.limits); }).catch(() => {}); }, []);
-  useEffect(() => {
-    if (activeTab === "bookings") {
-      setBookingsLoading(true);
-      fetch("/api/bookings")
-        .then(r => r.ok ? r.json() : null)
-        .then(d => { if (d && d.bookings) setBookings(d.bookings); })
-        .catch(() => {})
-        .finally(() => setBookingsLoading(false));
-    }
-  }, [activeTab]);
 
   const handleSave = async () => {
     if (!content) return;
@@ -85,7 +61,7 @@ export default function Dashboard() {
       console.log("FRONTEND LOG: Save response status is", res.status);
       if (res.status === 401) {
         console.warn("FRONTEND LOG: Unauthorized save attempt, redirecting to login");
-        router.push("/login");
+        router.push("/admin/login");
         return;
       }
       if (!res.ok) {
@@ -114,10 +90,9 @@ export default function Dashboard() {
       setSaving(false);
     }
   };
-  const handleLogout = async () => { await fetch("/api/auth/logout", { method: "POST" }); router.push("/login"); };
+  const handleLogout = async () => { await fetch("/api/auth/logout", { method: "POST" }); router.push("/admin/login"); };
 
   const updateHero = useCallback((fn: (h: ContentData["hero"]) => ContentData["hero"]) => { setContent(p => p ? { ...p, hero: fn(p.hero) } : p); }, []);
-  const updatePkg = useCallback((idx: number, fn: (p: Pkg) => Pkg) => { setContent(p => { if (!p) return p; const pkgs = [...p.packages]; pkgs[idx] = fn(pkgs[idx]); return { ...p, packages: pkgs }; }); }, []);
   const updateContact = useCallback((fn: (c: Contact) => Contact) => { setContent(p => p ? { ...p, contact: fn(p.contact) } : p); }, []);
   const updateFooter = useCallback((fn: (f: FooterData) => FooterData) => { setContent(p => p ? { ...p, footer: fn(p.footer) } : p); }, []);
   const updateBranding = useCallback((fn: (b: Branding) => Branding) => { setContent(p => p ? { ...p, branding: fn(p.branding) } : p); }, []);
@@ -178,7 +153,6 @@ export default function Dashboard() {
       // ignore and upload original file
     }
 
-    // Always route uploads to the API endpoint to utilize Vercel Blob or local storage
     const fd = new FormData(); fd.append("file", fileToUpload); if (slot) fd.append("slot", slot);
     try {
       const res = await fetch("/api/images", { method: "POST", body: fd });
@@ -199,9 +173,7 @@ export default function Dashboard() {
   if (!content) return <div className="flex items-center justify-center h-screen bg-gray-950 text-white">Failed to load content.</div>;
 
   const TABS = [
-    { id: "bookings", label: "Bookings", icon: Users },
     { id: "hero", label: "Hero Slides", icon: Eye },
-    { id: "packages", label: "Packages", icon: Package },
     { id: "contact", label: "Contact", icon: Phone },
     { id: "footer", label: "Footer", icon: FileText },
     { id: "images", label: "Images", icon: ImageIcon },
@@ -241,81 +213,6 @@ export default function Dashboard() {
         </div>
 
         <main className="flex-1 min-w-0 pb-20 lg:pb-0">
-
-          {/* ══════ BOOKINGS ══════ */}
-          {activeTab === "bookings" && (
-            <div className="space-y-6">
-              <div className="flex items-center justify-between">
-                <h2 className="text-2xl font-black">Student Bookings & Registrations</h2>
-                <div className="px-3 py-1.5 rounded-lg bg-gray-900 border border-gray-800 text-xs font-semibold text-gray-400">
-                  Total Leads: <span className="text-white font-bold">{bookings.length}</span>
-                </div>
-              </div>
-
-              <div className="bg-gray-900 rounded-2xl border border-gray-800 p-6">
-                <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4">Registration Log</h3>
-                
-                {bookingsLoading ? (
-                  <div className="flex items-center justify-center py-12">
-                    <div className="animate-spin rounded-full h-8 w-8 border-2 border-yellow-400 border-t-transparent" />
-                  </div>
-                ) : bookings.length === 0 ? (
-                  <div className="text-center py-12 text-gray-600">
-                    <Users size={48} className="mx-auto mb-3 opacity-30" />
-                    <p className="text-sm font-semibold">No bookings registered yet</p>
-                    <p className="text-xs mt-1">Incoming form registrations will appear here in real-time.</p>
-                  </div>
-                ) : (
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-sm">
-                      <thead>
-                        <tr className="border-b border-gray-800 text-gray-500 text-xs uppercase tracking-wider">
-                          <th className="text-left py-3 font-semibold">Student</th>
-                          <th className="text-left py-3 font-semibold">Contact Info</th>
-                          <th className="text-left py-3 font-semibold">Selected Package</th>
-                          <th className="text-left py-3 font-semibold">Preference</th>
-                          <th className="text-left py-3 font-semibold">Registered At</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {bookings.map(b => (
-                          <tr key={b.id} className="border-b border-gray-800/50 hover:bg-gray-800/10 transition-colors">
-                            <td className="py-4 font-bold text-white pr-4">{b.name}</td>
-                            <td className="py-4 pr-4">
-                              <p className="text-xs text-gray-300 font-semibold">{b.phone}</p>
-                              <p className="text-xs text-gray-500">{b.email}</p>
-                            </td>
-                            <td className="py-4 pr-4">
-                              <span className={`px-2.5 py-1 rounded-full text-xs font-extrabold uppercase tracking-wide inline-block ${
-                                b.package === "elite"
-                                  ? "bg-purple-500/10 text-purple-400 border border-purple-500/20"
-                                  : b.package === "defensive"
-                                  ? "bg-yellow-400/10 text-yellow-400 border border-yellow-400/20"
-                                  : "bg-blue-400/10 text-blue-400 border border-blue-400/20"
-                              }`}>
-                                {b.package === "elite" ? "Elite Test Readiness" : b.package === "defensive" ? "Defensive Master Class" : "Starter Permit Pack"}
-                              </span>
-                            </td>
-                            <td className="py-4 pr-4 capitalize text-gray-300 font-semibold">{b.timePreference}</td>
-                            <td className="py-4 font-mono text-xs text-gray-500">
-                              {new Date(b.timestamp).toLocaleString("en-US", {
-                                month: "short",
-                                day: "numeric",
-                                hour: "2-digit",
-                                minute: "2-digit",
-                                second: "2-digit",
-                                hour12: false
-                              })}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
 
           {/* ══════ HERO SLIDES ══════ */}
           {activeTab === "hero" && (
@@ -368,24 +265,23 @@ export default function Dashboard() {
             </div>
           )}
 
-          {/* ══════ PACKAGES ══════ */}
-          {activeTab === "packages" && (
-            <div className="space-y-6">
-              <h2 className="text-2xl font-black">Packages</h2>
-              {content.packages.map((pkg, idx) => (
-                <div key={idx} className="bg-gray-900 rounded-2xl border border-gray-800 p-6 space-y-4">
-                  <div className="flex items-center justify-between"><h3 className="font-bold text-yellow-400">{pkg.name || "Unnamed"}</h3><label className="flex items-center gap-2 text-xs text-gray-400 font-semibold cursor-pointer select-none"><input type="checkbox" checked={pkg.popular} onChange={e => updatePkg(idx, p => ({ ...p, popular: e.target.checked }))} className="rounded" />Popular</label></div>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">{(["name","price","lessons","duration"] as const).map(k => (<InputField key={k} label={k} value={pkg[k]} onChange={v => updatePkg(idx, p => ({ ...p, [k]: v }))} />))}</div>
-                  <InputField label="Tagline" value={pkg.tagline} onChange={v => updatePkg(idx, p => ({ ...p, tagline: v }))} />
-                  <div><label className="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-1.5">Features</label>{pkg.features.map((f, fi) => (<div key={fi} className="flex items-center gap-2 mb-2"><input type="text" value={f} onChange={e => updatePkg(idx, p => { const fts = [...p.features]; fts[fi] = e.target.value; return { ...p, features: fts }; })} className="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-sm text-white focus:outline-none" /><button onClick={() => updatePkg(idx, p => ({ ...p, features: p.features.filter((_, i) => i !== fi) }))} className="text-red-400 hover:text-red-300 cursor-pointer"><Trash2 size={14} /></button></div>))}<button onClick={() => updatePkg(idx, p => ({ ...p, features: [...p.features, "New feature"] }))} className="text-xs text-yellow-400 font-semibold flex items-center gap-1 mt-1 cursor-pointer"><Plus size={12} />Add Feature</button></div>
-                </div>
-              ))}
-            </div>
-          )}
-
           {/* ══════ CONTACT ══════ */}
           {activeTab === "contact" && (
-            <div className="space-y-6"><h2 className="text-2xl font-black">Contact Details</h2><div className="bg-gray-900 rounded-2xl border border-gray-800 p-6 space-y-4">{(["phone","email","address","hours"] as const).map(k => (<InputField key={k} label={k} value={content.contact[k]} onChange={v => updateContact(c => ({ ...c, [k]: v }))} />))}</div></div>
+            <div className="space-y-6">
+              <h2 className="text-2xl font-black">Contact Details</h2>
+              <div className="bg-gray-900 rounded-2xl border border-gray-800 p-6 space-y-4">
+                <h3 className="text-sm font-bold text-yellow-400">Section Header</h3>
+                <InputField label="Headline" value={content.contact.title ?? ""} onChange={v => updateContact(c => ({ ...c, title: v }))} />
+                <InputField label="Headline Highlight" value={content.contact.titleHighlight ?? ""} onChange={v => updateContact(c => ({ ...c, titleHighlight: v }))} />
+                <InputField label="Subhead" value={content.contact.description ?? ""} onChange={v => updateContact(c => ({ ...c, description: v }))} />
+              </div>
+              <div className="bg-gray-900 rounded-2xl border border-gray-800 p-6 space-y-4">
+                <h3 className="text-sm font-bold text-yellow-400">Contact Cards Info</h3>
+                {(["phone","email","address","hours"] as const).map(k => (
+                  <InputField key={k} label={k} value={content.contact[k]} onChange={v => updateContact(c => ({ ...c, [k]: v }))} />
+                ))}
+              </div>
+            </div>
           )}
 
           {/* ══════ FOOTER ══════ */}

@@ -135,7 +135,10 @@
     "phone": "(415) 555-0188",
     "email": "info@michaelwongdriving.com",
     "address": "San Francisco, CA — Serving the entire SF Bay Area",
-    "hours": "Open 7 days a week. Office: Mon-Sat 8AM-8PM. Lessons available 24 hours."
+    "hours": "Open 7 days a week. Office: Mon-Sat 8AM-8PM. Lessons available 24 hours.",
+    "title": "Ready to take the",
+    "titleHighlight": "driver's seat?",
+    "description": "Get in touch with us to schedule lessons or ask questions. Our coordinator will contact you shortly."
   },
   "footer": {
     "companyName": "Michael Wong Driving School",

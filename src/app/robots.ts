@@ -5,7 +5,7 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: "*",
       allow: "/",
-      disallow: ["/api/", "/dashboard/", "/dashboard", "/api"],
+      disallow: ["/api/", "/admin/", "/api"],
     },
     sitemap: "https://www.michaelwongdrivingschool.com/sitemap.xml",
   };

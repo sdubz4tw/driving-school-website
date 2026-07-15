@@ -32,7 +32,7 @@ export default function LoginPage() {
       const data = await res.json();
 
       if (res.ok && data.success) {
-        router.push("/dashboard");
+        router.push("/admin/dashboard");
         router.refresh();
       } else {
         setError(data.error || "Invalid username or password");

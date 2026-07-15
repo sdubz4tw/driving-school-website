@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { put } from "@vercel/blob";
 import fs from "fs";
 import path from "path";
+import type { UploadedImage } from "@/types";
 
 export const dynamic = "force-dynamic";
 
@@ -17,9 +18,9 @@ function isAuthenticated(cookieStore: ReturnType<typeof cookies> extends Promise
   return session?.value === "authorized_session_token_value";
 }
 
-const isBlobConfigured = () => 
-  !!(process.env.BLOB_READ_WRITE_TOKEN || 
-     process.env.VERCEL_OIDC_TOKEN || 
+const isBlobConfigured = () =>
+  !!(process.env.BLOB_READ_WRITE_TOKEN ||
+     process.env.VERCEL_OIDC_TOKEN ||
      process.env.BLOB_STORE_ID);
 
 /* GET — list uploaded images */
@@ -29,7 +30,7 @@ export async function GET() {
       fs.mkdirSync(UPLOAD_DIR, { recursive: true });
     }
     const files = fs.readdirSync(UPLOAD_DIR).filter(f => /\.(jpg|jpeg|png|webp|svg)$/i.test(f));
-    const images = files.map(f => {
+    const images: UploadedImage[] = files.map(f => {
       const stat = fs.statSync(path.join(UPLOAD_DIR, f));
       return {
         name: f,
@@ -77,14 +78,14 @@ export async function POST(request: NextRequest) {
         access: "public",
       });
       revalidatePath("/");
-      revalidatePath("/dashboard");
+      revalidatePath("/admin/dashboard");
       return NextResponse.json({
         success: true,
         image: {
           name: safeName,
           url: blob.url,
           size: file.size,
-        },
+        } satisfies UploadedImage,
       });
     } else {
       // Try local file system write first
@@ -97,16 +98,16 @@ export async function POST(request: NextRequest) {
         fs.writeFileSync(filePath, Buffer.from(arrayBuffer));
 
         revalidatePath("/");
-        revalidatePath("/dashboard");
+        revalidatePath("/admin/dashboard");
         return NextResponse.json({
           success: true,
           image: {
             name: safeName,
             url: `/images/uploads/${safeName}`,
             size: file.size,
-          },
+          } satisfies UploadedImage,
         });
-      } catch (writeError) {
+      } catch {
         // Fallback for read-only serverless filesystems (e.g. Vercel without Blob tokens)
         // Convert to Base64 Data URL so the user can still preview and save it inside content.json
         const arrayBuffer = await file.arrayBuffer();
@@ -114,7 +115,7 @@ export async function POST(request: NextRequest) {
         const dataUrl = `data:${file.type};base64,${base64String}`;
 
         revalidatePath("/");
-        revalidatePath("/dashboard");
+        revalidatePath("/admin/dashboard");
         return NextResponse.json({
           success: true,
           image: {
@@ -122,12 +123,13 @@ export async function POST(request: NextRequest) {
             url: dataUrl,
             size: file.size,
             isBase64Fallback: true
-          },
+          } satisfies UploadedImage,
         });
       }
     }
-  } catch (error: any) {
-    return NextResponse.json({ error: error?.message || String(error) }, { status: 500 });
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : String(error);
+    return NextResponse.json({ error: msg }, { status: 500 });
   }
 }
 
