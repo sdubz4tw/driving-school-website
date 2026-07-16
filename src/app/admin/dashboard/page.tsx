@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import {
-  Save, LogOut, Plus, Trash2, Palette, Phone, Eye,
+  Save, LogOut, Plus, Trash2, Palette, Phone, Eye, Star,
   LayoutGrid, FileText, Upload, ImageIcon, BarChart3, TrendingUp,
   Users, MousePointerClick, Globe, ArrowUpRight, ArrowDownRight, X,
 } from "lucide-react";
@@ -15,6 +15,7 @@ import type {
   FooterData,
   Branding,
   UploadedImage,
+  Review,
 } from "@/types";
 
 /* ── types ─────────────────────────────────────────────────── */
@@ -52,7 +53,7 @@ export default function Dashboard() {
     if (typeof window !== "undefined") {
       const params = new URLSearchParams(window.location.search);
       const tab = params.get("tab");
-      if (tab && ["hero", "contact", "footer", "images", "branding"].includes(tab)) {
+      if (tab && ["hero", "reviews", "contact", "footer", "images", "branding"].includes(tab)) {
         setActiveTab(tab);
       }
     }
@@ -106,6 +107,46 @@ export default function Dashboard() {
   const updateContact = useCallback((fn: (c: Contact) => Contact) => { setContent(p => p ? { ...p, contact: fn(p.contact) } : p); }, []);
   const updateFooter = useCallback((fn: (f: FooterData) => FooterData) => { setContent(p => p ? { ...p, footer: fn(p.footer) } : p); }, []);
   const updateBranding = useCallback((fn: (b: Branding) => Branding) => { setContent(p => p ? { ...p, branding: fn(p.branding) } : p); }, []);
+
+  const updateReview = useCallback((idx: number, fn: (r: Review) => Review) => {
+    setContent(p => {
+      if (!p) return p;
+      const reviews = [...p.reviews];
+      reviews[idx] = fn(reviews[idx]);
+      return { ...p, reviews };
+    });
+  }, []);
+
+  const addReview = useCallback(() => {
+    setContent(p => {
+      if (!p) return p;
+      return {
+        ...p,
+        reviews: [
+          ...p.reviews,
+          {
+            id: Date.now(),
+            name: "New Student",
+            rating: 5,
+            date: "Just now",
+            text: "Excellent instruction! Professional and patient.",
+            tag: "Verified Graduate",
+            initials: "NS",
+          },
+        ],
+      };
+    });
+  }, []);
+
+  const removeReview = useCallback((idx: number) => {
+    setContent(p => {
+      if (!p) return p;
+      return {
+        ...p,
+        reviews: p.reviews.filter((_, i) => i !== idx),
+      };
+    });
+  }, []);
   const compressImage = (file: File, maxWidth = 1200, maxHeight = 800, quality = 0.7): Promise<File> => {
     return new Promise((resolve) => {
       if (file.type === "image/svg+xml") {
@@ -184,6 +225,7 @@ export default function Dashboard() {
 
   const TABS = [
     { id: "hero", label: "Hero Slides", icon: Eye },
+    { id: "reviews", label: "Reviews", icon: Star },
     { id: "contact", label: "Contact", icon: Phone },
     { id: "footer", label: "Footer", icon: FileText },
     { id: "images", label: "Images", icon: ImageIcon },
@@ -272,6 +314,84 @@ export default function Dashboard() {
                 </div>
               ))}
               <div className="bg-gray-900 rounded-2xl border border-gray-800 p-6 space-y-4"><h3 className="text-sm font-bold text-yellow-400">Stats Bar</h3><div className="grid grid-cols-3 gap-4">{(["passRate", "graduates", "instructors"] as const).map(k => (<InputField key={k} label={k === "passRate" ? "Pass Rate" : k === "graduates" ? "Graduates" : "Years of Teaching"} value={content.hero.stats[k]} onChange={v => updateHero(h => ({ ...h, stats: { ...h.stats, [k]: v } }))} />))}</div></div>
+            </div>
+          )}
+
+          {/* ══════ REVIEWS ══════ */}
+          {activeTab === "reviews" && (
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <h2 className="text-2xl font-black">Verified Reviews</h2>
+                <button 
+                  onClick={addReview} 
+                  className="px-4 py-2 rounded-lg bg-yellow-400 text-gray-900 font-bold text-xs flex items-center gap-1.5 cursor-pointer hover:bg-yellow-300"
+                >
+                  <Plus size={14} /> Add Review
+                </button>
+              </div>
+              <p className="text-sm text-gray-500">Add, edit, or delete student reviews that appear on the homepage.</p>
+              
+              <div className="space-y-4">
+                {content.reviews?.map((review, idx) => (
+                  <div key={review.id || idx} className="bg-gray-900 rounded-2xl border border-gray-800 p-6 space-y-4">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-sm font-bold text-yellow-400">Review #{idx + 1}</h3>
+                      <button 
+                        onClick={() => removeReview(idx)} 
+                        className="text-red-400 hover:text-red-300 text-xs font-semibold flex items-center gap-1 cursor-pointer"
+                      >
+                        <Trash2 size={14} /> Remove Review
+                      </button>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                      <InputField 
+                        label="Student Name" 
+                        value={review.name} 
+                        onChange={v => updateReview(idx, r => ({ ...r, name: v }))} 
+                      />
+                      <InputField 
+                        label="Initials" 
+                        value={review.initials} 
+                        onChange={v => updateReview(idx, r => ({ ...r, initials: v }))} 
+                      />
+                      <InputField 
+                        label="Tag (Highlight)" 
+                        value={review.tag} 
+                        onChange={v => updateReview(idx, r => ({ ...r, tag: v }))} 
+                      />
+                      <InputField 
+                        label="Relative Date" 
+                        value={review.date} 
+                        onChange={v => updateReview(idx, r => ({ ...r, date: v }))} 
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+                      <div className="md:col-span-3">
+                        <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-1.5">Review Text</label>
+                        <textarea 
+                          value={review.text} 
+                          onChange={e => updateReview(idx, r => ({ ...r, text: e.target.value }))}
+                          className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-yellow-400/50 h-20 resize-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-1.5">Rating (Stars)</label>
+                        <select 
+                          value={review.rating} 
+                          onChange={e => updateReview(idx, r => ({ ...r, rating: parseInt(e.target.value) || 5 }))}
+                          className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-yellow-400/50"
+                        >
+                          {[5, 4, 3, 2, 1].map(num => (
+                            <option key={num} value={num}>{num} Stars</option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
 
