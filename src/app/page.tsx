@@ -23,6 +23,7 @@ export default function Home() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [content, setContent] = useState<SiteContent>(DEFAULT_CONTENT);
+  const [loading, setLoading] = useState(true);
 
   /* ── fetch content ─────────────────────────────── */
   useEffect(() => {
@@ -31,7 +32,8 @@ export default function Home() {
       .then((d) => {
         if (d) setContent(d);
       })
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => setLoading(false));
   }, []);
 
   /* ── apply branding CSS vars ────────────────────── */
@@ -154,66 +156,74 @@ export default function Home() {
 
       {/* ═══════════════════ HERO SLIDESHOW ═══════════════════ */}
       {vis.hero !== false && (
-        <section id="hero" className="relative w-full overflow-hidden" style={{ height: "85vh", minHeight: "550px" }}>
-          {slides.map((slide, idx) => (
-            <div 
-              key={idx} 
-              className="absolute inset-0 transition-opacity duration-1000 ease-in-out" 
-              style={{ opacity: currentSlide === idx ? 1 : 0, zIndex: currentSlide === idx ? 1 : 0 }}
-            >
-              <Image src={slide.image} alt={slide.title} fill priority={idx === 0} sizes="100vw" className="object-cover" />
-              <div className="absolute inset-0" style={{ background: "linear-gradient(to bottom, rgba(3,7,18,0.45) 0%, rgba(3,7,18,0.85) 100%)" }} />
+        <section id="hero" className="relative w-full overflow-hidden bg-gray-950" style={{ height: "85vh", minHeight: "550px" }}>
+          {loading ? (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="animate-spin rounded-full h-10 w-10 border-2 border-white/20 border-t-white" />
             </div>
-          ))}
+          ) : (
+            <>
+              {slides.map((slide, idx) => (
+                <div 
+                  key={idx} 
+                  className="absolute inset-0 transition-opacity duration-1000 ease-in-out" 
+                  style={{ opacity: currentSlide === idx ? 1 : 0, zIndex: currentSlide === idx ? 1 : 0 }}
+                >
+                  <Image src={slide.image} alt={slide.title} fill priority={idx === 0} sizes="100vw" className="object-cover" />
+                  <div className="absolute inset-0" style={{ background: "linear-gradient(to bottom, rgba(3,7,18,0.45) 0%, rgba(3,7,18,0.85) 100%)" }} />
+                </div>
+              ))}
 
-          <div className="absolute inset-0 z-10 flex flex-col items-center justify-center text-center text-white px-4">
-            {slides.map((slide, idx) => (
-              <div 
-                key={idx} 
-                className="absolute transition-all duration-700 ease-in-out max-w-3xl px-4" 
-                style={{ 
-                  opacity: currentSlide === idx ? 1 : 0, 
-                  transform: currentSlide === idx ? "translateY(0)" : "translateY(24px)",
-                  pointerEvents: currentSlide === idx ? "auto" : "none" 
-                }}
-              >
-                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-[1.08] mb-6 drop-shadow-lg">
-                  {slide.title}
-                </h1>
-                <p className="text-lg sm:text-xl text-gray-200 max-w-xl mx-auto leading-relaxed mb-10 drop-shadow">
-                  {slide.subtitle}
-                </p>
-                <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                  <a 
-                    href="#register" 
-                    className="px-8 py-4 rounded-xl font-bold text-sm tracking-wide shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all" 
-                    style={{ backgroundColor: "var(--brand-accent, #FFE600)", color: "var(--brand-primary, #0B192C)" }}
+              <div className="absolute inset-0 z-10 flex flex-col items-center justify-center text-center text-white px-4">
+                {slides.map((slide, idx) => (
+                  <div 
+                    key={idx} 
+                    className="absolute transition-all duration-700 ease-in-out max-w-3xl px-4" 
+                    style={{ 
+                      opacity: currentSlide === idx ? 1 : 0, 
+                      transform: currentSlide === idx ? "translateY(0)" : "translateY(24px)",
+                      pointerEvents: currentSlide === idx ? "auto" : "none" 
+                    }}
                   >
-                    Schedule Your Lesson
-                  </a>
+                    <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-[1.08] mb-6 drop-shadow-lg">
+                      {slide.title}
+                    </h1>
+                    <p className="text-lg sm:text-xl text-gray-200 max-w-xl mx-auto leading-relaxed mb-10 drop-shadow">
+                      {slide.subtitle}
+                    </p>
+                    <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                      <a 
+                        href="#register" 
+                        className="px-8 py-4 rounded-xl font-bold text-sm tracking-wide shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all" 
+                        style={{ backgroundColor: "var(--brand-accent, #FFE600)", color: "var(--brand-primary, #0B192C)" }}
+                      >
+                        Schedule Your Lesson
+                      </a>
+                    </div>
+                  </div>
+                ))}
+
+                {/* Slide dots */}
+                <div className="absolute bottom-8 flex items-center gap-3">
+                  {slides.map((_, idx) => (
+                    <button 
+                      key={idx} 
+                      onClick={() => setCurrentSlide(idx)} 
+                      className="w-3 h-3 rounded-full transition-all duration-300 cursor-pointer" 
+                      style={{ 
+                        backgroundColor: currentSlide === idx ? "var(--brand-accent, #FFE600)" : "rgba(255,255,255,0.4)", 
+                        transform: currentSlide === idx ? "scale(1.3)" : "scale(1)" 
+                      }} 
+                      aria-label={`Go to slide ${idx + 1}`} 
+                    />
+                  ))}
                 </div>
               </div>
-            ))}
 
-            {/* Slide dots */}
-            <div className="absolute bottom-8 flex items-center gap-3">
-              {slides.map((_, idx) => (
-                <button 
-                  key={idx} 
-                  onClick={() => setCurrentSlide(idx)} 
-                  className="w-3 h-3 rounded-full transition-all duration-300 cursor-pointer" 
-                  style={{ 
-                    backgroundColor: currentSlide === idx ? "var(--brand-accent, #FFE600)" : "rgba(255,255,255,0.4)", 
-                    transform: currentSlide === idx ? "scale(1.3)" : "scale(1)" 
-                  }} 
-                  aria-label={`Go to slide ${idx + 1}`} 
-                />
-              ))}
-            </div>
-          </div>
-
-          <button onClick={prevSlide} className="absolute left-4 top-1/2 -translate-y-1/2 z-20 w-12 h-12 rounded-full bg-black/30 backdrop-blur-sm border border-white/10 flex items-center justify-center text-white hover:bg-black/50 transition-all cursor-pointer" aria-label="Previous slide"><ChevronLeft size={22} /></button>
-          <button onClick={nextSlide} className="absolute right-4 top-1/2 -translate-y-1/2 z-20 w-12 h-12 rounded-full bg-black/30 backdrop-blur-sm border border-white/10 flex items-center justify-center text-white hover:bg-black/50 transition-all cursor-pointer" aria-label="Next slide"><ChevronRight size={22} /></button>
+              <button onClick={prevSlide} className="absolute left-4 top-1/2 -translate-y-1/2 z-20 w-12 h-12 rounded-full bg-black/30 backdrop-blur-sm border border-white/10 flex items-center justify-center text-white hover:bg-black/50 transition-all cursor-pointer" aria-label="Previous slide"><ChevronLeft size={22} /></button>
+              <button onClick={nextSlide} className="absolute right-4 top-1/2 -translate-y-1/2 z-20 w-12 h-12 rounded-full bg-black/30 backdrop-blur-sm border border-white/10 flex items-center justify-center text-white hover:bg-black/50 transition-all cursor-pointer" aria-label="Next slide"><ChevronRight size={22} /></button>
+            </>
+          )}
         </section>
       )}
 
