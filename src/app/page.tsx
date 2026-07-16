@@ -391,17 +391,19 @@ export default function Home() {
                 ))}
               </div>
               
-              <div className="mt-10 text-center space-y-2">
-                <p className="text-gray-500 text-xs font-bold uppercase tracking-widest">
+              <div className="mt-12 text-center space-y-3">
+                <p className="text-gray-500 text-sm font-extrabold uppercase tracking-widest">
                   {contact.phoneLabel ?? "Prefer to text or call?"}
                 </p>
-                <a 
-                  href={`tel:${contact.phone.replace(/[^0-9]/g, "")}`} 
-                  className="inline-block text-3xl sm:text-4xl font-black hover:scale-105 active:scale-95 transition-transform" 
-                  style={{ color: "var(--brand-primary, #0B192C)" }}
-                >
-                  {contact.phone}
-                </a>
+                <div className="leading-tight">
+                  <a 
+                    href={`tel:${contact.phone.replace(/[^0-9]/g, "")}`} 
+                    className="inline-block text-4xl sm:text-5xl font-black hover:scale-105 active:scale-95 transition-transform" 
+                    style={{ color: "var(--brand-primary, #0B192C)" }}
+                  >
+                    {contact.phone}
+                  </a>
+                </div>
               </div>
 
               <div className="mt-8 p-6 bg-white rounded-2xl border border-gray-100 flex items-center gap-3">
