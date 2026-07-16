@@ -164,11 +164,11 @@
     "logoText": "MICHAEL WONG",
     "logoSubtext": "Driving School",
     "colors": {
-      "primary": "#0B192C",
-      "accent": "#FFE600",
-      "dark": "#030712",
-      "light": "#1E3E62",
-      "background": "#F8FAFC"
+      "primary": "#18181B",
+      "accent": "#38BDF8",
+      "dark": "#09090B",
+      "light": "#3F3F46",
+      "background": "#F0F9FF"
     },
     "logoImage": ""
   }
