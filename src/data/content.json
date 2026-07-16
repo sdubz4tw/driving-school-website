@@ -120,15 +120,6 @@
       "text": "I've recommended this school to everyone I know. Clean cars, patient teachers, and they actually teach you how to handle real SF driving — Lombard Street, steep hills, tight parking. 10/10.",
       "tag": "SF Specialist",
       "initials": "SC"
-    },
-    {
-      "id": 6,
-      "name": "Marcus R.",
-      "rating": 5,
-      "date": "2 weeks ago",
-      "text": "Got my insurance discount certificate after completing the Defensive Master Class. The mock DMV test they do is almost identical to the real thing. Felt completely prepared on test day.",
-      "tag": "Insurance Discount",
-      "initials": "MR"
     }
   ],
   "contact": {
@@ -138,7 +129,8 @@
     "hours": "Open 7 days a week. Office: Mon-Sat 8AM-8PM. Lessons available 24 hours.",
     "title": "Ready to take the",
     "titleHighlight": "driver's seat?",
-    "description": "Get in touch with us to schedule lessons or ask questions. Our coordinator will contact you shortly."
+    "description": "Get in touch with us to schedule lessons or ask questions. Our coordinator will contact you shortly.",
+    "phoneLabel": "Prefer to text or call?"
   },
   "footer": {
     "companyName": "Michael Wong Driving School",

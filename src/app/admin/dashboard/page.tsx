@@ -410,6 +410,7 @@ export default function Dashboard() {
                 {(["phone","email","address","hours"] as const).map(k => (
                   <InputField key={k} label={k} value={content.contact[k]} onChange={v => updateContact(c => ({ ...c, [k]: v }))} />
                 ))}
+                <InputField label="Phone Section Headline Text (Refer text/call)" value={content.contact.phoneLabel ?? ""} onChange={v => updateContact(c => ({ ...c, phoneLabel: v }))} />
               </div>
             </div>
           )}

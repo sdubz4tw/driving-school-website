@@ -390,6 +390,20 @@ export default function Home() {
                   </div>
                 ))}
               </div>
+              
+              <div className="mt-10 text-center space-y-2">
+                <p className="text-gray-500 text-xs font-bold uppercase tracking-widest">
+                  {contact.phoneLabel ?? "Prefer to text or call?"}
+                </p>
+                <a 
+                  href={`tel:${contact.phone.replace(/[^0-9]/g, "")}`} 
+                  className="inline-block text-3xl sm:text-4xl font-black hover:scale-105 active:scale-95 transition-transform" 
+                  style={{ color: "var(--brand-primary, #0B192C)" }}
+                >
+                  {contact.phone}
+                </a>
+              </div>
+
               <div className="mt-8 p-6 bg-white rounded-2xl border border-gray-100 flex items-center gap-3">
                 <Award size={36} className="flex-shrink-0" style={{ color: "var(--brand-accent, #FFE600)" }} />
                 <p className="text-xs text-gray-500 font-semibold leading-relaxed">Licensed by the Department of Motor Vehicles (DMV). Certificate Course provider.</p>

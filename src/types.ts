@@ -51,6 +51,7 @@ export interface ContactInfo {
   title?: string;
   titleHighlight?: string;
   description?: string;
+  phoneLabel?: string;
 }
 
 /* ── Footer ───────────────────────────────────────────────────── */
@@ -273,7 +274,8 @@ export const DEFAULT_CONTENT: SiteContent = {
     hours: "Open 7 days a week. Office: Mon-Sat 8AM-8PM. Lessons available 24 hours.",
     title: "Ready to take the",
     titleHighlight: "driver's seat?",
-    description: "Get in touch with us to schedule lessons or ask questions. Our coordinator will contact you shortly."
+    description: "Get in touch with us to schedule lessons or ask questions. Our coordinator will contact you shortly.",
+    phoneLabel: "Prefer to text or call?"
   },
   footer: {
     companyName: "Michael Wong Driving School",
